@@ -1,0 +1,940 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Sổ tay chuyến đi</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Sổ tay">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap">
+<meta name="description" content="Sổ tay chuyến đi: lịch trình, quán ăn, đồ cần mang; tick lại, sửa ngay trên điện thoại và đồng bộ nhiều máy.">
+<meta name="theme-color" content="#1d2160">
+<meta property="og:title" content="Sổ tay chuyến đi">
+<meta property="og:description" content="Lịch trình Hà Giang từ Bắc Ninh, quán ăn và checklist hành trang.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%231d2160'/%3E%3Cpath d='M8 50 26 22l9 14 6-8 15 22z' fill='%23ffc531'/%3E%3Ccircle cx='46' cy='18' r='6' fill='%23e23d7e'/%3E%3C/svg%3E">
+<style>
+/* Layout: one mobile-first column; sticky tab bar; each tab is a stack of day/area cards with large tap-target checklists */
+:root{
+  --bg:#f2f3fa; --card:#ffffff; --ink:#1d2160; --muted:#5d6191; --line:#e2e4f3; --chip:#eef0fb;
+  --pink:#e23d7e; --pink-soft:#ffe3ef; --sun:#ffc531; --sun-soft:#fff3cf; --teal:#0e9893; --teal-soft:#dcf5f3;
+  --warn:#c9332f; --warn-soft:#ffe6e4; --shadow:rgba(29,33,96,.10);
+  --font-display:"Baloo 2","Trebuchet MS",system-ui,sans-serif;
+  --font-body:"Be Vietnam Pro",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#11133a; --card:#1c1f4f; --ink:#eef0ff; --muted:#aeb1da; --line:#2f336f; --chip:#272b64;
+  --pink:#ff6aa4; --pink-soft:#3e2350; --sun:#ffd24f; --sun-soft:#3b3426; --teal:#38d2ca; --teal-soft:#1c3d4c;
+  --warn:#ff8a84; --warn-soft:#45233a; --shadow:rgba(0,0,0,.35); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#11133a; --card:#1c1f4f; --ink:#eef0ff; --muted:#aeb1da; --line:#2f336f; --chip:#272b64;
+  --pink:#ff6aa4; --pink-soft:#3e2350; --sun:#ffd24f; --sun-soft:#3b3426; --teal:#38d2ca; --teal-soft:#1c3d4c;
+  --warn:#ff8a84; --warn-soft:#45233a; --shadow:rgba(0,0,0,.35); color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:15px;line-height:1.5}
+.wrap{max-width:760px;margin:0 auto;padding-inline:16px;padding-block:18px 48px}
+h1,h2,h3{font-family:var(--font-display);margin:0;line-height:1.1;text-wrap:balance}
+a{color:inherit}
+button{font:inherit;color:inherit}
+.eyebrow{font-family:var(--font-display);font-weight:700;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--pink)}
+.muted{color:var(--muted)}
+[hidden]{display:none!important}
+
+/* hero */
+.hero{display:flex;flex-direction:column;gap:12px;padding-block:6px 14px}
+.hero h1{font-size:clamp(34px,8vw,48px);font-weight:800;letter-spacing:-.5px}
+.hero h1 span{color:var(--pink)}
+.hero .sub{margin:0;color:var(--muted);max-width:56ch}
+.cd{align-self:flex-start;display:inline-flex;align-items:center;gap:8px;font-family:var(--font-display);font-weight:800;font-size:15px;line-height:1;padding:9px 14px 7px;border-radius:999px;background:var(--ink);color:var(--bg);font-variant-numeric:tabular-nums}
+.cd svg{width:16px;height:16px}
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.stat{background:var(--card);border-radius:16px;padding:12px;box-shadow:0 2px 0 var(--line);min-width:0}
+.stat b{display:block;font-family:var(--font-display);font-weight:800;font-size:24px;line-height:1;font-variant-numeric:tabular-nums}
+.stat span{font-size:12px;font-weight:600;color:var(--muted)}
+.bar{height:6px;border-radius:99px;background:var(--chip);overflow:hidden;margin-top:8px}
+.bar i{display:block;height:100%;width:0;background:var(--teal);border-radius:99px;transition:width .4s}
+.stat.food .bar i{background:var(--pink)}.stat.pack .bar i{background:var(--sun)}
+
+/* tabs */
+.stick{position:sticky;top:env(safe-area-inset-top,0px);z-index:10;margin-inline:-8px;padding:8px;background:var(--bg);display:flex;flex-direction:column;gap:8px}
+.tabs{display:flex;gap:6px}
+.tab{flex:1;min-width:0;font-family:var(--font-display);font-weight:800;font-size:16px;line-height:1;padding:12px 8px 10px;border-radius:14px;border:2px solid var(--line);background:var(--card);color:var(--muted);cursor:pointer}
+.tab[aria-selected="true"]{background:var(--ink);border-color:var(--ink);color:var(--bg)}
+.tab:focus-visible,.ck:focus-within,.btn:focus-visible,.chipbtn:focus-visible,.seg button:focus-visible{outline:3px solid var(--sun);outline-offset:2px}
+.panel{display:flex;flex-direction:column;gap:14px;padding-top:6px}
+
+/* cards */
+.card{background:var(--card);border-radius:20px;padding:16px;box-shadow:0 3px 0 var(--line),0 10px 24px var(--shadow)}
+.card-h{display:flex;flex-wrap:wrap;align-items:flex-start;justify-content:space-between;gap:8px}
+.card-h h2{font-size:22px;font-weight:800}
+.card-h .route{font-size:13px;color:var(--muted);font-weight:600;margin-top:2px}
+.pill{display:inline-flex;align-items:center;font-family:var(--font-display);font-weight:800;font-size:13px;line-height:1;padding:6px 10px 4px;border-radius:999px;background:var(--chip);color:var(--ink);white-space:nowrap;font-variant-numeric:tabular-nums}
+.pill.done{background:var(--teal);color:var(--card)}
+
+/* checklist rows */
+.list{display:flex;flex-direction:column;margin-top:10px}
+.row{display:grid;grid-template-columns:auto minmax(0,1fr);gap:12px;padding:10px 0;border-top:1px dashed var(--line)}
+.row:first-child{border-top:0}
+.row.next{background:linear-gradient(90deg,var(--sun-soft),transparent);margin-inline:-16px;padding-inline:16px;border-radius:0}
+.ck{position:relative;display:block;width:30px;height:30px;margin-top:1px;cursor:pointer;flex:none}
+.ck input{position:absolute;inset:0;opacity:0;margin:0;cursor:pointer}
+.ck span{position:absolute;inset:0;border-radius:9px;border:2.5px solid var(--muted);background:var(--card);display:grid;place-items:center;transition:background .15s,border-color .15s}
+.ck input:checked+span{background:var(--teal);border-color:var(--teal)}
+.ck input:checked+span::after{content:"";width:8px;height:14px;border:solid var(--card);border-width:0 3.5px 3.5px 0;transform:translateY(-2px) rotate(45deg)}
+.food .ck input:checked+span,.dish .ck input:checked+span{background:var(--pink);border-color:var(--pink)}
+.pack .ck input:checked+span{background:var(--sun);border-color:var(--sun)}
+.pack .ck input:checked+span::after{border-color:var(--ink)}
+.body{min-width:0;display:flex;flex-direction:column;gap:4px}
+.top{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 8px}
+.time{font-family:var(--font-display);font-weight:800;font-size:14px;color:var(--pink);font-variant-numeric:tabular-nums;white-space:nowrap}
+.ttl{font-weight:700;font-size:15px;line-height:1.35}
+.row.is-done .ttl{text-decoration:line-through;text-decoration-thickness:2px;color:var(--muted)}
+.notes{display:flex;flex-wrap:wrap;gap:6px}
+.note{font-size:13px;line-height:1.35;padding:4px 9px;border-radius:10px;background:var(--chip)}
+.note.warn{background:var(--warn-soft);color:var(--warn);font-weight:700}
+.note.eat{background:var(--pink-soft)}
+.note.tix{background:var(--teal-soft)}
+.acts{display:flex;flex-wrap:wrap;gap:6px;margin-top:2px}
+.btn{display:inline-flex;align-items:center;gap:6px;font-family:var(--font-display);font-weight:800;font-size:13px;line-height:1;padding:8px 11px 6px;border-radius:11px;border:2px solid var(--ink);background:var(--card);color:var(--ink);text-decoration:none;cursor:pointer;white-space:nowrap}
+.btn svg{width:15px;height:15px;flex:none}
+.btn.solid{background:var(--ink);color:var(--card)}
+.btn.pink{background:var(--pink);border-color:var(--pink);color:#fff}
+.btn.ghost{border-color:var(--line)}
+.btn:active{transform:translateY(1px)}
+.mapbox{margin-top:6px;border-radius:14px;overflow:hidden;border:2px solid var(--line);aspect-ratio:16/10;max-width:100%;background:var(--chip);position:relative}
+.mapbox iframe{border:0;width:100%;height:100%;display:block}
+.mapbox p{position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:16px;margin:0;font-size:13px;color:var(--muted)}
+.tag{font-family:var(--font-display);font-weight:800;font-size:11px;letter-spacing:.04em;text-transform:uppercase;padding:3px 8px 1px;border-radius:999px;white-space:nowrap}
+.tag.in{background:var(--teal-soft);color:var(--teal)}
+.tag.sg{background:var(--sun-soft);color:var(--ink)}
+.tag.uv{background:var(--warn-soft);color:var(--warn)}
+.meta{font-size:13px;color:var(--muted);display:flex;flex-wrap:wrap;gap:4px 10px}
+
+/* food filters + dish chips */
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+.seg button{font-family:var(--font-display);font-weight:700;font-size:14px;line-height:1;padding:9px 12px 7px;border-radius:999px;border:2px solid var(--line);background:var(--card);cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--pink);border-color:var(--pink);color:#fff}
+.dishes{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.chipbtn{display:inline-flex;align-items:center;gap:6px;font-weight:600;font-size:14px;padding:8px 12px;border-radius:999px;border:2px solid var(--line);background:var(--card);cursor:pointer}
+.chipbtn[aria-pressed="true"]{background:var(--pink-soft);border-color:var(--pink)}
+.chipbtn[aria-pressed="true"]::before{content:"✓";font-weight:800;color:var(--pink)}
+.area-more{margin-top:10px}
+
+/* pack add */
+.addrow{display:flex;gap:8px;margin-top:10px}
+.addrow input{flex:1;min-width:0;font:inherit;font-size:16px;color:var(--ink);background:var(--bg);border:2px solid var(--line);border-radius:12px;padding:9px 12px}
+.addrow input:focus-visible{outline:3px solid var(--sun);outline-offset:1px}
+.del{background:none;border:0;color:var(--muted);font-size:13px;font-weight:700;cursor:pointer;padding:2px 4px;align-self:flex-start;text-decoration:underline}
+
+/* data card */
+.data textarea{width:100%;min-height:96px;font:13px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--ink);background:var(--bg);border:2px solid var(--line);border-radius:12px;padding:10px;resize:vertical;word-break:break-all}
+.data ul{margin:8px 0 0;padding-left:18px;color:var(--muted);font-size:14px}
+.data li+li{margin-top:4px}
+.status{font-size:13px;font-weight:600;color:var(--teal)}
+.status.bad{color:var(--warn)}
+.sync{margin-top:18px;padding-top:14px;border-top:2px dashed var(--line);display:flex;flex-direction:column;gap:10px}
+.sync h3{font-size:19px;font-weight:800}
+.code{font:700 18px/1.2 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.06em;padding:10px 12px;border-radius:12px;background:var(--chip);word-break:break-all;user-select:all}
+.joinrow{display:flex;gap:8px}
+.joinrow input{flex:1;min-width:0;font:600 16px ui-monospace,SFMono-Regular,Menlo,monospace;text-transform:uppercase;color:var(--ink);background:var(--bg);border:2px solid var(--line);border-radius:12px;padding:9px 12px}
+.joinrow input:focus-visible{outline:3px solid var(--sun);outline-offset:1px}
+.dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--muted);margin-right:6px;vertical-align:1px}
+.dot.ok{background:var(--teal)}.dot.wait{background:var(--sun)}.dot.bad{background:var(--warn)}
+.cdrow{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.syncchip{display:inline-flex;align-items:center;font-family:var(--font-display);font-weight:800;font-size:13px;line-height:1;padding:8px 12px 6px;border-radius:999px;background:var(--card);color:var(--ink);border:2px solid var(--line)}
+.toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 18px);transform:translateX(-50%);background:var(--ink);color:var(--card);font-weight:700;font-size:14px;padding:10px 16px;border-radius:999px;box-shadow:0 10px 24px var(--shadow);z-index:20;max-width:calc(100% - 32px);text-align:center}
+
+/* trip bar + edit mode */
+.tripbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.tripbar select{flex:1 1 140px;min-width:0;font:700 15px var(--font-body);color:var(--ink);background:var(--card);border:2px solid var(--line);border-radius:12px;padding:9px 34px 9px 12px;appearance:none;-webkit-appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%);background-position:calc(100% - 18px) 52%,calc(100% - 12px) 52%;background-size:6px 6px;background-repeat:no-repeat}
+.tripbar select:focus-visible,.fld input:focus-visible,.fld textarea:focus-visible,.fld select:focus-visible,.ib:focus-visible{outline:3px solid var(--sun);outline-offset:1px}
+.tripbar .btn{padding:10px 12px 8px;font-size:14px}
+#editBtn[aria-pressed="true"]{background:var(--sun);border-color:var(--sun);color:#1d2160}
+.editbar{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;padding:6px 8px 6px 12px;border-radius:14px;background:var(--sun-soft);border:2px dashed var(--sun);font-size:14px;font-weight:600}
+.editbar span{flex:1 1 auto}
+.hbtns{display:flex;align-items:center;gap:4px;flex-wrap:wrap;justify-content:flex-end}
+.edtools{display:inline-flex;gap:4px;margin-left:auto}
+.ib{display:inline-grid;place-items:center;width:34px;height:34px;padding:0;border-radius:10px;border:2px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer;flex:none}
+.ib svg{width:17px;height:17px}
+.ib:active{transform:translateY(1px)}
+.addline{margin-top:10px}
+.btn.big{justify-content:center;width:100%;padding:14px 12px 12px;font-size:15px;border-style:dashed;border-color:var(--muted);background:transparent}
+.chipbtn.add{border-style:dashed;border-color:var(--muted);font-weight:700}
+.chipbtn[data-ed]{border-color:var(--sun)}
+.empty{margin:6px 0 0;font-size:14px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.area-more{display:flex;flex-wrap:wrap;gap:6px}
+
+/* bottom sheet editor */
+.sheetbg{position:fixed;inset:0;background:rgba(10,12,40,.45);z-index:30}
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:31;max-height:88vh;overflow:auto;background:var(--card);border-radius:22px 22px 0 0;padding:18px 16px calc(env(safe-area-inset-bottom,0px) + 16px);box-shadow:0 -10px 30px var(--shadow)}
+@media (min-width:700px){.sheet{left:50%;right:auto;bottom:auto;top:50%;transform:translate(-50%,-50%);width:560px;border-radius:22px}}
+.sheet h2{font-size:22px;font-weight:800;margin-bottom:12px}
+.fields{display:flex;flex-direction:column;gap:12px}
+.fld{display:flex;flex-direction:column;gap:4px}
+.fld label{font-weight:700;font-size:14px}
+.fld small{font-size:12px;color:var(--muted)}
+.fld input,.fld textarea,.fld select{font:inherit;font-size:16px;color:var(--ink);background:var(--bg);border:2px solid var(--line);border-radius:12px;padding:9px 12px;width:100%}
+.fld textarea{resize:vertical;line-height:1.4}
+.err{margin:10px 0 0;color:var(--warn);font-weight:700;font-size:14px}
+.sheet-f{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:16px}
+.sheet-f .btn{padding:11px 14px 9px;font-size:15px}
+.btn.danger{border-color:var(--warn);color:var(--warn);background:transparent}
+.synctrip{font-weight:700;color:var(--ink)}
+@media (prefers-reduced-motion: reduce){.bar i,.ck span{transition:none}}
+</style>
+<style>body{margin:0}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="hero">
+    <div class="tripbar"><label for="tripSel" class="sr">Chọn chuyến đi</label><select id="tripSel"></select><button class="btn" id="newTripBtn" type="button" aria-label="Tạo chuyến đi mới">＋ Mới</button><button class="btn" id="editBtn" type="button" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4z"/><path d="m13.5 6.5 4 4"/></svg><span> Sửa</span></button></div>
+    <div class="eyebrow" id="heroEyebrow">…</div>
+    <h1 id="heroTitle">Sổ tay</h1>
+    <p class="sub" id="heroSub"></p>
+    <div class="cdrow"><span class="cd" id="cd"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5M9 2h6"/></svg><span id="cdText">…</span></span><span class="syncchip" id="syncChip" hidden><span class="dot" id="syncChipDot"></span><span id="syncChipText">Đồng bộ</span></span></div>
+    <div class="stats">
+      <div class="stat"><b id="sStops">0/0</b><span>Điểm đã đi</span><div class="bar"><i id="bStops"></i></div></div>
+      <div class="stat food"><b id="sFood">0</b><span>Quán đã ăn</span><div class="bar"><i id="bFood"></i></div></div>
+      <div class="stat pack"><b id="sPack">0/0</b><span>Đồ đã xếp</span><div class="bar"><i id="bPack"></i></div></div>
+    </div>
+  </header>
+
+  <div class="stick">
+  <nav class="tabs" role="tablist" aria-label="Phần của sổ tay">
+    <button class="tab" role="tab" id="t-route" aria-controls="p-route" aria-selected="true">Lộ trình</button>
+    <button class="tab" role="tab" id="t-food" aria-controls="p-food" aria-selected="false">Ăn uống</button>
+    <button class="tab" role="tab" id="t-pack" aria-controls="p-pack" aria-selected="false">Hành trang</button>
+  </nav>
+  <div class="editbar" id="editBar" hidden><span>Đang sửa chuyến đi</span><button class="btn" id="tripInfo" type="button">Tên, ngày đi</button><button class="btn solid" id="editDone" type="button">Xong</button></div>
+  </div>
+
+  <section class="panel" id="p-route" role="tabpanel" aria-labelledby="t-route">
+    <div class="card" style="padding:12px 16px">
+      <div class="card-h" style="align-items:center">
+        <span class="muted" style="font-size:14px">Điểm tiếp theo: <b id="nextName" style="color:var(--ink)">…</b></span>
+        <button class="btn solid" id="goNext" type="button">Tới điểm này</button>
+      </div>
+    </div>
+    <div id="days"></div>
+  </section>
+
+  <section class="panel" id="p-food" role="tabpanel" aria-labelledby="t-food" hidden>
+    <div class="card dish">
+      <div class="card-h"><h2>Món phải thử</h2><span class="pill" id="dishCount">0/0</span></div>
+      <p class="muted" style="margin:6px 0 0;font-size:14px">Bấm vào món đã ăn để đánh dấu.</p>
+      <div class="dishes" id="dishes"></div>
+    </div>
+    <div class="seg" id="foodFilter" role="group" aria-label="Lọc quán">
+      <button type="button" data-f="all" aria-pressed="true">Tất cả</button>
+      <button type="button" data-f="in" aria-pressed="false">Có trong lịch</button>
+      <button type="button" data-f="sg" aria-pressed="false">Gợi ý thêm</button>
+      <button type="button" data-f="todo" aria-pressed="false">Chưa ăn</button>
+      <button type="button" data-f="done" aria-pressed="false">Đã ăn</button>
+    </div>
+    <div id="areas"></div>
+    <p class="muted" style="font-size:13px;margin:0">Giờ mở cửa có thể thay đổi, nên gọi trước khi tới. Bấm Sửa để thêm quán bạn tự tìm được.</p>
+  </section>
+
+  <section class="panel" id="p-pack" role="tabpanel" aria-labelledby="t-pack" hidden>
+    <div id="packs"></div>
+  </section>
+
+  <section class="card data" style="margin-top:18px" aria-label="Dữ liệu của bạn">
+    <div class="card-h"><h2>Dữ liệu của bạn</h2><span class="status" id="saveStatus">Đang kiểm tra…</span></div>
+    <ul>
+      <li>Mọi thứ bạn tick được lưu ngay trong trình duyệt của điện thoại, đóng trang hay tắt máy mở lại vẫn còn.</li>
+      <li>iPhone: mở bằng Safari, bấm Chia sẻ → <b>Thêm vào MH chính</b> để dùng như app và giữ dữ liệu lâu hơn.</li>
+      <li>Mỗi chuyến đi lưu riêng: lịch trình, quán ăn, đồ cần mang và các dấu tick. Đổi chuyến ở ô chọn đầu trang.</li>
+      <li>Không dùng tab ẩn danh. Đổi máy mà chưa bật đồng bộ thì dùng mã sao lưu bên dưới.</li>
+    </ul>
+    <div class="acts" style="margin-top:12px">
+      <button class="btn solid" id="bkBtn" type="button">Sao lưu chuyến này</button>
+      <button class="btn" id="rsBtn" type="button">Khôi phục từ mã</button>
+      <button class="btn ghost" id="clrBtn" type="button">Bỏ tick cả chuyến</button>
+    </div>
+    <div id="bkBox" hidden style="margin-top:12px">
+      <label for="bkText" class="muted" style="font-size:13px;display:block;margin-bottom:6px" id="bkLabel">Mã sao lưu</label>
+      <textarea id="bkText" spellcheck="false"></textarea>
+      <div class="acts" style="margin-top:8px"><button class="btn pink" id="bkAct" type="button">Sao chép</button><button class="btn ghost" id="bkClose" type="button">Đóng</button></div>
+    </div>
+    <div id="clrBox" hidden style="margin-top:12px">
+      <p style="margin:0 0 8px;font-weight:700;color:var(--warn)" id="clrMsg">Bỏ tick toàn bộ chuyến này?</p>
+      <div class="acts"><button class="btn pink" id="clrYes" type="button">Bỏ tick</button><button class="btn ghost" id="clrNo" type="button">Huỷ</button></div>
+    </div>
+
+    <div class="sync" id="syncBox">
+      <div class="card-h"><h3>Đồng bộ nhiều máy</h3><span class="status" id="syncStatus"><span class="dot"></span>Đang kiểm tra…</span></div>
+      <div id="syncOff" hidden><p class="muted" style="margin:0;font-size:14px" id="syncOffMsg">Chưa dán cấu hình Firebase vào trang, nên dữ liệu chỉ lưu trên máy này.</p></div>
+      <div id="syncLocal" hidden style="display:flex;flex-direction:column;gap:10px">
+        <p class="muted" style="margin:0;font-size:14px">Chuyến <span class="synctrip" data-synctrip></span> đang chỉ lưu trên máy này. Bật đồng bộ để có mã, gửi mã cho người đi cùng là cả hai dùng chung lịch trình và checklist.</p>
+        <div class="acts"><button class="btn solid" id="syncCreate" type="button">Bật đồng bộ cho chuyến này</button></div>
+      </div>
+      <div id="syncOn" hidden style="display:flex;flex-direction:column;gap:10px">
+        <p class="muted" style="margin:0;font-size:14px">Mã của chuyến <span class="synctrip" data-synctrip></span>, gửi cho người đi cùng:</p>
+        <div class="code" id="syncCodeShow">HG-…</div>
+        <div class="acts"><button class="btn pink" id="syncCopy" type="button">Sao chép mã</button><button class="btn ghost" id="syncLeave" type="button">Ngừng đồng bộ trên máy này</button></div>
+      </div>
+      <div id="syncJoin" hidden style="display:flex;flex-direction:column;gap:8px">
+        <p class="muted" style="margin:0;font-size:14px">Có mã từ người đi cùng? Nhập mã để mở chuyến đó trên máy này, chuyến sẽ được thêm vào danh sách.</p>
+        <form class="joinrow" id="syncJoinForm"><label for="syncCode" class="sr">Mã chuyến đi</label><input id="syncCode" type="text" placeholder="HG-XXXX-XXXX-XXXX-XXXX" autocomplete="off" autocapitalize="characters" spellcheck="false"><button class="btn pink" type="submit">Mở chuyến</button></form>
+      </div>
+    </div>
+  </section>
+</div>
+<div class="toast" id="toast" hidden role="status" aria-live="polite"></div>
+<div class="sheetbg" id="sheetBg" hidden></div>
+<div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle" hidden>
+  <form id="sheetForm" novalidate>
+    <h2 id="sheetTitle">Sửa</h2>
+    <div class="fields" id="sheetFields"></div>
+    <p class="err" id="sheetErr" hidden></p>
+    <div class="sheet-f"><button class="btn danger" id="sheetDel" type="button">Xoá</button><span style="flex:1"></span><button class="btn ghost" id="sheetCancel" type="button">Huỷ</button><button class="btn solid" type="submit">Lưu</button></div>
+  </form>
+</div>
+
+<script>
+(function(){
+"use strict";
+const $=id=>document.getElementById(id);
+const esc=t=>String(t==null?'':t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const uid=p=>(p||'x')+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+const clone=o=>JSON.parse(JSON.stringify(o));
+
+/* =====================================================================
+   TEMPLATES
+   ===================================================================== */
+const N=(k,t)=>[k,t];
+function tplHaGiang(){
+  const days=[
+   {id:'d0',label:'Đêm 0',date:'Thứ 7 · 21/11',route:'Bắc Ninh → TP Hà Giang',km:'≈ 330 km',items:[
+    {id:'d0a',time:'22:00',t:'Xe khách Bắc Ninh → TP Hà Giang',n:[N('info','Kiểm tra giờ xe trên vé, xe từ Bắc Ninh có thể đón sớm hơn')]}]},
+   {id:'d1',label:'Ngày 1',date:'Chủ nhật · 22/11',route:'TP Hà Giang – Quản Bạ – Yên Minh – Lô Lô Chải',km:'150 km',items:[
+    {id:'d1a',time:'04:00',t:'Tới nhà xe máy TP Hà Giang, nhận dorm nghỉ ngơi'},
+    {id:'d1b',time:'06:00',t:'Nhận xe máy, đi ăn sáng',n:[N('warn','Check xe trước khi nhận, đổ đầy xăng')],food:'tphg'},
+    {id:'d1c',t:'Cột mốc Km0 Hà Giang – check in, hộ chiếu Hà Giang',n:[N('eat','Ăn sáng: Bánh cuốn Bà Hà, BC Bà Hồng')],q:'Cột mốc Km0 Hà Giang'},
+    {id:'d1d',t:'Dốc Bắc Sum',n:[N('eat','Phở chua Lý Dính, phở chua Hiền Lương (ở TP Hà Giang)')],q:'Dốc Bắc Sum Hà Giang'},
+    {id:'d1e',t:'Cây cô đơn – Yên Minh (22 km)',q:'Cây cô đơn Yên Minh Hà Giang'},
+    {id:'d1f',t:'Dốc Cán Tỷ',q:'Dốc Cán Tỷ Quản Bạ'},
+    {id:'d1g',time:'12:00',t:'Ăn trưa ở thị trấn Yên Minh',n:[N('info','Chuẩn bị tiền lẻ, bánh kẹo cho các bé nếu được')],food:'yenminh'},
+    {id:'d1h',t:'Dốc Thẩm Mã, dốc Chín Khoanh – check in view Thụy Sĩ',n:[N('tix','Vé: 10k')],q:'Dốc Thẩm Mã Hà Giang'},
+    {id:'d1i',t:'Làng văn hoá Lũng Cẩm “Chuyện của Pao”',n:[N('tix','Vé: 30k')],q:'Nhà của Pao Lũng Cẩm'},
+    {id:'d1j',t:'Dinh thự Vua Mèo',n:[N('info','Nếu quá mệt có thể để thứ 3 về check in')],q:'Dinh thự họ Vương Sà Phìn'},
+    {id:'d1k',t:'Lên Lô Lô Chải – nghỉ 1 đêm',n:[N('info','Nếu còn sớm có thể đi cột cờ và check in view làng')],q:'Làng Lô Lô Chải',food:'lolo'}]},
+   {id:'d2',label:'Ngày 2',date:'Thứ 2 · 23/11',route:'Lô Lô Chải – Đồng Văn – sông Nho Quế – Mèo Vạc',km:'50 km',items:[
+    {id:'d2a',time:'06:00',t:'Ăn sáng',n:[N('tix','Vé cột cờ: 40k, gồm xe điện')],food:'lolo'},
+    {id:'d2b',t:'Cột cờ Lũng Cú, check in các góc chill trong làng',q:'Cột cờ Lũng Cú'},
+    {id:'d2c',time:'09:00',t:'Trả phòng Lô Lô, về Đồng Văn gửi đồ (25 km)',n:[N('tix','Vé: 150k (giá mới)')]},
+    {id:'d2d',t:'Đồng Văn → sông Nho Quế (25 km), qua đèo Mã Pì Lèng',n:[N('info','1 trong “tứ đại đỉnh đèo” Việt Nam')],q:'Đèo Mã Pì Lèng'},
+    {id:'d2e',t:'Lên Panorama – check in',n:[N('info','Có thể để chiều về')],q:'Mã Pì Lèng Panorama',food:'snq'},
+    {id:'d2f',t:'Đi thuyền trên sông Nho Quế – ăn trưa, check in mâm cơm triệu view',n:[N('warn','Trên Maps tìm “Du lịch Hẻm Tu Sản”, đừng gõ SNQ')],q:'Bến thuyền hẻm Tu Sản',food:'snq'},
+    {id:'d2g',t:'Sông Nho Quế → làng H’Mông (4 km), check in 30 phút',n:[N('tix','Vé gửi xe 10–15k')]},
+    {id:'d2h',time:'16:00',t:'Về Đồng Văn – phố cổ về đêm, lửa trại, đặc sản',n:[N('eat','Cháo ấu tẩu, bánh thắng dền, bánh tam giác mạch, rượu men ngô')],q:'Phố cổ Đồng Văn',food:'dongvan'}]},
+   {id:'d3',label:'Ngày 3',date:'Thứ 3 · 24/11',route:'Đồng Văn – Yên Minh – TP Hà Giang – Bắc Ninh',km:'',items:[
+    {id:'d3a',time:'05:30',t:'Dậy sớm (nếu đi vào Chủ nhật)',n:[N('eat','Phở chợ phiên, bánh cuốn, thắng cố, mèn mén, thịt gác bếp, xôi ngũ sắc…')]},
+    {id:'d3b',t:'Chợ phiên Đồng Văn – ăn sáng, mua đặc sản',n:[N('info','Phiên chợ lớn họp sáng Chủ nhật; thứ 3 là chợ thường')],q:'Chợ Đồng Văn',food:'dongvan'},
+    {id:'d3c',time:'10:00',t:'Trả phòng Đồng Văn'},
+    {id:'d3d',time:'12:30',t:'Ăn trưa tại Yên Minh',n:[N('warn','Về đường Yên Minh 22 km, không nên đi Du Già: đường xa và rất xấu')],food:'yenminh'},
+    {id:'d3e',time:'16:00–16:30',t:'Về TP Hà Giang trả xe máy, nghỉ ngơi',food:'tphg'},
+    {id:'d3f',time:'17:00–17:30',t:'Lên xe cabin về Bắc Ninh',n:[N('info','Chọn xe có điểm trả ở Bắc Ninh, tới khoảng 0–1h sáng')]}]}
+  ];
+  const areas=[
+   {id:'tphg',name:'TP Hà Giang',when:'Ăn sáng ngày 1 · bữa cuối ngày 3',q:'quán ăn ngon TP Hà Giang'},
+   {id:'quanba',name:'Quản Bạ',when:'Dọc đường ngày 1',q:'quán ăn Quản Bạ Hà Giang'},
+   {id:'yenminh',name:'Yên Minh',when:'Bữa trưa ngày 1 và ngày 3',q:'quán ăn thị trấn Yên Minh'},
+   {id:'lolo',name:'Lũng Cú – Lô Lô Chải',when:'Tối ngày 1 · sáng ngày 2',q:'quán ăn Lô Lô Chải Lũng Cú'},
+   {id:'snq',name:'Mã Pì Lèng – sông Nho Quế',when:'Trưa ngày 2',q:'quán ăn Mã Pì Lèng sông Nho Quế'},
+   {id:'dongvan',name:'Đồng Văn',when:'Tối ngày 2 · sáng ngày 3',q:'quán ăn ngon phố cổ Đồng Văn'}];
+  const places=[
+   {id:'lydinh',a:'tphg',tag:'in',name:'Phở chua Lý Dính',dish:'Phở chua: phở trộn khô với nước sốt chua ngọt.',hours:'5:00–13:00 · 16:00–20:00',pid:'ChIJh-w6pk55zDYRFlpxE2VQUng',ll:[22.8081509,104.9787186]},
+   {id:'hienluong',a:'tphg',tag:'in',name:'Nhà hàng Hiền Lương',dish:'Phở chua, phở xào; ăn tối được sau khi trả xe.',hours:'6:00–23:00',pid:'ChIJpbbRSbR5zDYRCFdkOQr3Zk8',ll:[22.8285449,104.9813272]},
+   {id:'bahong',a:'tphg',tag:'uv',name:'Bánh cuốn Bà Hồng',dish:'Có trong lịch nhưng chưa tìm thấy quán này ở TP Hà Giang trên Google Maps. Hỏi nhà xe máy hoặc người dân.',hours:'Chưa rõ'},
+   {id:'bachinh',a:'tphg',tag:'sg',name:'Bánh cuốn Bà Chính',dish:'Bánh cuốn Hà Giang chấm nước xương nóng.',hours:'6:00–11:00 · tối 19:00–0:30',pid:'ChIJ72Kzfkx4zDYR4KUChEbzhDY',ll:[22.8251074,104.9889697]},
+   {id:'balan',a:'tphg',tag:'sg',name:'Bánh cuốn Bà Làn',dish:'Bánh cuốn thường và bánh cuốn trứng, ăn kèm nước xương.',hours:'6:00–10:30 · tối 19:00–22:30',pid:'ChIJIW8HgEx4zDYRGiymCkJi6BA',ll:[22.825026,104.9891327]},
+   {id:'dacsanbc',a:'tphg',tag:'sg',name:'Đặc Sản Bánh Cuốn Hà Giang',dish:'Quán nhỏ phố Phạm Hồng Thái, bánh cuốn ăn với canh.',hours:'6:00–10:00',pid:'ChIJqbV40d15zDYR_YTPRkXuXGc',ll:[22.8240902,104.9894824]},
+   {id:'nguyenbeo',a:'tphg',tag:'sg',name:'Cơm gà, cơm rang Nguyên Béo',dish:'Ăn nhanh, no lâu trước giờ lên xe về.',hours:'9:30–22:30',pid:'ChIJRwfB07J5zDYRBTAa4OtTPwE',ll:[22.8206539,104.9841913]},
+   {id:'huydinh',a:'quanba',tag:'sg',name:'Homestay Huy Định',dish:'Quán gia đình nhìn ra cánh đồng, có món chay.',hours:'6:30–23:30',pid:'ChIJ-xDPXl0LzDYR12QnPoQ8n7U',ll:[23.0691061,105.0002597]},
+   {id:'yenngoc',a:'quanba',tag:'sg',name:'Nhà hàng Yến Ngọc 2',dish:'Không gian mở nhìn ra ruộng, nghỉ chân giữa đường.',hours:'Mở cả ngày',pid:'ChIJdx72orALzDYRgrbtndCWulI',ll:[23.0691523,105.000593]},
+   {id:'ngoctuyen',a:'yenminh',tag:'sg',name:'Cơm, phở, lẩu Ngọc Tuyên',dish:'Quán gia đình đầu thị trấn: phở, mì, cơm, lẩu.',hours:'Gọi trước hỏi giờ',pid:'ChIJE1AmYADxyzYRF_5scf7ccrA',ll:[23.1231773,105.1269026]},
+   {id:'ymquan',a:'yenminh',tag:'sg',name:'Yên Minh Quán',dish:'Cơm, có món chay, phần ăn nhiều.',hours:'CN 7:30–24:00 · T3 7:00–24:00',pid:'ChIJoyg5iB_xyzYRX43lYnzfJL4',ll:[23.1216306,105.1331856]},
+   {id:'cucbac',a:'lolo',tag:'sg',name:'Cafe Cực Bắc',dish:'Cà phê sân vườn trong làng, ngồi chill sau khi lên cột cờ.',hours:'7:00–22:00',pid:'ChIJY6oKNhziyzYRzrEsys3zNRY',ll:[23.3643048,105.3094691]},
+   {id:'alo',a:'lolo',tag:'sg',name:'Nhà hàng A Lo',dish:'Món vùng cao; sáng có xôi, phở; tối có thắng dền.',hours:'Mở cả ngày',pid:'ChIJP0W9sH3jyzYRJIRGRR6WzGA',ll:[23.364407,105.3099739]},
+   {id:'panorama',a:'snq',tag:'in',name:'Mã Pì Lèng Panorama',dish:'Điểm ngắm vực Tu Sản có quầy đồ uống. Có vé vào cửa, hỏi giá gói kèm đồ uống.',hours:'Ban ngày',pid:'ChIJswN2XV3dyzYRfgDz4RwOpzg',ll:[23.2271544,105.4178305]},
+   {id:'cafemy',a:'snq',tag:'sg',name:'Cafe Mỹ',dish:'Quán ven đèo nhìn thẳng xuống sông Nho Quế, ít đông hơn Panorama.',hours:'Mở cả ngày',pid:'ChIJ79wCPezdyzYR8qqh0yGnKfM',ll:[23.2304157,105.4140513]},
+   {id:'hoathuyen',a:'snq',tag:'sg',name:'Nhà hàng Hoa Thuyền Nho Quế',dish:'Ngay khu bến thuyền hẻm Tu Sản, hợp bữa trưa ngày 2; có thuê trang phục H’Mông chụp ảnh.',hours:'Gọi trước hỏi giờ',pid:'ChIJSUaIFmvdyzYRGS2v7s-eM80',ll:[23.2225437,105.4428912]},
+   {id:'baha',a:'dongvan',tag:'in',name:'Bánh Cuốn Bà Hà',dish:'Bánh cuốn nước xương, xôi ngũ sắc trong phố cổ. Lịch ghi ăn sáng ngày 1 nhưng quán ở Đồng Văn, hợp bữa sáng ngày 3.',hours:'6:00–11:00',pid:'ChIJBwAtZirnyzYRa9nbuyopIHA',ll:[23.2790219,105.3610278]},
+   {id:'chodv',a:'dongvan',tag:'in',name:'Chợ Đồng Văn',dish:'Phở chợ và đặc sản mang về.',hours:'5:00–19:00',pid:'ChIJ6wjeHirnyzYRy3Vpws4wh3M',ll:[23.2770742,105.3612351]},
+   {id:'mocmien',a:'dongvan',tag:'sg',name:'Quán cháo Mộc Miên',dish:'Cháo ấu tẩu, cháo thịt băm; hợp bữa tối ngày 2.',hours:'Chỉ bán tối 18:30–24:00',pid:'ChIJPyFRY2jnyzYRHZgyDcr6KHg',ll:[23.2771653,105.3580264]},
+   {id:'thienlinh',a:'dongvan',tag:'sg',name:'Cháo ấu tẩu Thiện Linh',dish:'Cháo ấu tẩu đủ topping; có cả bún, miến xào.',hours:'Gọi trước hỏi giờ',pid:'ChIJuZ-45AXnyzYRrS84OHhawVs',ll:[23.2777711,105.360275]},
+   {id:'thachson',a:'dongvan',tag:'sg',name:'Thạch Sơn Quán (Nghĩa Khàn)',dish:'Lẩu gà đen, dê, bò; hợp tối lạnh ở phố cổ.',hours:'9:00–23:00',pid:'ChIJuZPSMZTnyzYRbPJRkpgQTPc',ll:[23.2791805,105.3613973]},
+   {id:'cnd',a:'dongvan',tag:'sg',name:'Nhà hàng CND',dish:'Nhà sàn rộng, view núi; lẩu gà đen, thắng cố.',hours:'Thứ 2: 8:00–22:00',pid:'ChIJgYcL3h_nyzYRI4MLfZ01ThA',ll:[23.2780268,105.3501439]}];
+  const dishes=['Phở chua','Bánh cuốn nước xương','Cháo ấu tẩu','Bánh thắng dền','Bánh tam giác mạch','Thắng cố','Mèn mén','Thịt gác bếp','Xôi ngũ sắc','Lẩu gà đen','Rượu men ngô (không uống khi lái)'].map((t,i)=>({id:'ds'+i,t}));
+  const packs=packTpl([
+   ['docs','Giấy tờ & tiền',['CCCD','Bằng lái xe máy','Vé xe đi và về','Tiền mặt, có tiền lẻ','Thẻ ngân hàng']],
+   ['warm','Giữ ấm (sáng tối chỉ 8–14°C)',['Áo giữ nhiệt','Áo khoác gió hoặc phao mỏng','Găng tay','Khăn hoặc ống che cổ','Mũ len','Tất dày','Miếng dán giữ nhiệt']],
+   ['ride','Đi xe máy',['Áo mưa bộ','Khẩu trang, kính chắn gió','Giày thể thao đế bám','Giá kẹp điện thoại','Dây chun buộc đồ']],
+   ['tech','Điện tử',['Sạc dự phòng','Cáp và củ sạc','Túi chống nước điện thoại','Tai nghe']],
+   ['care','Thuốc & cá nhân',['Thuốc say xe','Thuốc cảm, đau đầu','Thuốc đau bụng','Băng cá nhân','Kem chống nắng','Son dưỡng, kem dưỡng ẩm','Khăn giấy ướt','Bàn chải, đồ vệ sinh']],
+   ['misc','Khác',['Bánh kẹo cho các bé','Một bộ đồ đẹp để chụp ảnh']]]);
+  return {v:2,name:'Hà Giang 3N2Đ',sub:'Bắc Ninh – Hà Giang – Lô Lô Chải – Đồng Văn – sông Nho Quế.',start:'2026-11-21T22:00',end:'2026-11-25T01:00',days,areas,places,dishes,packs};
+}
+function packTpl(list){return list.map(([id,name,items])=>({id,name,items:items.map((t,i)=>({id:id+':'+i,t}))}));}
+function tplBlank(name,start){
+  return {v:2,name:name||'Chuyến đi mới',sub:'',start:start||'',end:'',
+    days:[{id:uid('d'),label:'Ngày 1',date:'',route:'',km:'',items:[]}],areas:[],places:[],dishes:[],
+    packs:packTpl([['docs','Giấy tờ & tiền',['CCCD','Vé đi và về','Tiền mặt','Thẻ ngân hàng']],
+      ['clothes','Quần áo',['Áo khoác','Đồ ngủ','Giày dép']],['tech','Điện tử',['Sạc dự phòng','Cáp và củ sạc']],
+      ['care','Thuốc & cá nhân',['Thuốc cá nhân','Kem chống nắng','Đồ vệ sinh cá nhân']]])};
+}
+const TEMPLATES={hagiang:{name:'Hà Giang 3N2Đ (từ Bắc Ninh)',make:()=>tplHaGiang()},blank:{name:'Trang trống',make:(n,s)=>tplBlank(n,s)}};
+
+/* =====================================================================
+   STORAGE: many trips on this device
+   ===================================================================== */
+const KEY='hgPlanner.v2',OLD='hgSoTay.v1';
+let canStore=true;
+try{localStorage.setItem(KEY+'.t','1');canStore=localStorage.getItem(KEY+'.t')==='1';localStorage.removeItem(KEY+'.t');}catch(e){canStore=false;}
+const emptyProg=()=>({stops:{},food:{},dishes:{},pack:{}});
+let DB={trips:{},order:[],cur:null,ui:{tab:'route',filter:'all'},ts:0};
+function newTrip(plan,code){const lid=uid('t');DB.trips[lid]={lid,code:code||null,plan,prog:emptyProg(),q:[],ts:Date.now()};DB.order.push(lid);return lid;}
+function load(){
+  if(!canStore)return;
+  try{const v=JSON.parse(localStorage.getItem(KEY)||'null');if(v&&v.trips){DB=Object.assign({trips:{},order:[],cur:null,ui:{tab:'route',filter:'all'}},v);}}catch(e){}
+  if(!DB.order.length){
+    let old=null;try{old=JSON.parse(localStorage.getItem(OLD)||'null');}catch(e){}
+    const plan=tplHaGiang(),lid=newTrip(plan,old&&old.trip||null),T=DB.trips[lid];
+    if(old){
+      T.prog.stops=Object.assign({},old.stops);T.prog.food=Object.assign({},old.food);T.prog.pack=Object.assign({},old.pack);
+      Object.keys(old.dishes||{}).forEach(k=>{T.prog.dishes['ds'+k]=true;});
+      Object.entries(old.custom||{}).forEach(([cat,l])=>{const p=plan.packs.find(x=>x.id===cat);if(p)(l||[]).forEach(c=>p.items.push({id:c.id,t:c.t}));});
+      if(old.tab)DB.ui.tab=old.tab;if(old.filter)DB.ui.filter=old.filter;
+    }
+    DB.cur=lid;save();
+  }
+  if(!DB.trips[DB.cur])DB.cur=DB.order[0];
+}
+let persisted=false;
+function save(){DB.ts=Date.now();if(canStore){try{localStorage.setItem(KEY,JSON.stringify(DB));}catch(e){canStore=false;}}status();}
+function status(){const el=$('saveStatus');if(!el)return;
+  if(!canStore){el.textContent='Trình duyệt đang chặn lưu (tab ẩn danh?)';el.classList.add('bad');return;}
+  el.classList.remove('bad');el.textContent=`Đã lưu trên máy · ${new Date(DB.ts||Date.now()).toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit'})}`+(persisted?' · lưu bền':'');}
+if(navigator.storage&&navigator.storage.persist){navigator.storage.persisted().then(p=>p||navigator.storage.persist()).then(p=>{persisted=!!p;status();}).catch(()=>{});}
+load();
+const T=()=>DB.trips[DB.cur],P=()=>T().plan,G=()=>T().prog;
+
+
+/* =====================================================================
+   RENDER
+   ===================================================================== */
+let EDIT=false;
+const PIN='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>';
+const MAPI='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg>';
+const BOWL='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11h18a9 9 0 0 1-18 0z"/><path d="M8 7c0-1.5 1-1.5 1-3M12 7c0-1.5 1-1.5 1-3M16 7c0-1.5 1-1.5 1-3"/></svg>';
+const SEARCH='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>';
+const PEN='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4z"/><path d="m13.5 6.5 4 4"/></svg>';
+const UP='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 15 6-6 6 6"/></svg>';
+const DOWN='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>';
+const qUrl=q=>`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(q)}`;
+const areaName=id=>(P().areas.find(a=>a.id===id)||{}).name||'';
+const placeUrl=f=>f.link?f.link:f.pid?`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(f.name+(areaName(f.a)?', '+areaName(f.a):''))}&query_place_id=${f.pid}`:qUrl(f.q||(f.name+' '+areaName(f.a)));
+const embedUrl=f=>f.ll?`https://maps.google.com/maps?q=${f.ll[0]},${f.ll[1]}&z=16&hl=vi&output=embed`:`https://maps.google.com/maps?q=${encodeURIComponent(f.q||(f.name+' '+areaName(f.a)))}&z=15&hl=vi&output=embed`;
+const ck=(id,checked,label)=>`<label class="ck"><input type="checkbox" data-id="${id}"${checked?' checked':''} aria-label="${esc(label)}"><span></span></label>`;
+const eb=(kind,ids,label)=>`<button class="ib" type="button" data-ed="${kind}" data-ids="${esc(ids)}" aria-label="Sửa ${esc(label)}">${PEN}</button>`;
+const mv=(kind,ids,label)=>`<button class="ib" type="button" data-mv="${kind}" data-ids="${esc(ids)}" data-dir="-1" aria-label="Đưa ${esc(label)} lên">${UP}</button><button class="ib" type="button" data-mv="${kind}" data-ids="${esc(ids)}" data-dir="1" aria-label="Đưa ${esc(label)} xuống">${DOWN}</button>`;
+let toastT=0;
+function toast(t){const el=$('toast');el.textContent=t;el.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>{el.hidden=true;},2400);}
+const parseLocal=s=>s?new Date(s.length<=16?s+':00+07:00':s).getTime():NaN;
+const fmtD=s=>/^\d{4}-\d{2}-\d{2}/.test(s||'')?s.slice(8,10)+'/'+s.slice(5,7):'';
+
+function renderHeader(){
+  const p=P();
+  $('tripSel').innerHTML=DB.order.map(l=>`<option value="${l}"${l===DB.cur?' selected':''}>${esc(DB.trips[l].plan.name||'Chuyến đi')}${DB.trips[l].code?' · đồng bộ':''}</option>`).join('');
+  const words=String(p.name||'Chuyến đi').trim().split(/\s+/),last=words.length>1?words.pop():'';
+  $('heroTitle').innerHTML=esc(words.join(' '))+(last?` <span>${esc(last)}</span>`:'');
+  const yr=/^\d{4}/.test(p.end||p.start||'')?(p.end||p.start).slice(0,4):'';
+  const range=fmtD(p.start)?`${fmtD(p.start)}${fmtD(p.end)?' – '+fmtD(p.end):''}${yr?'/'+yr:''}`:'Chưa đặt ngày';
+  $('heroEyebrow').textContent=`${p.days.length} ngày trong lịch · ${range}`;
+  $('heroSub').textContent=p.sub||'Tick những nơi đã đi, quán đã ăn và đồ đã xếp vào balo; trang tự lưu trên máy.';
+  document.title=(p.name||'Sổ tay')+' · Sổ tay chuyến đi';
+  $('editBtn').setAttribute('aria-pressed',EDIT?'true':'false');$('editBtn').lastChild.textContent=EDIT?' Xong':' Sửa';
+  $('editBar').hidden=!EDIT;
+}
+function noteKind(k){return ({warn:'warn',tix:'tix',eat:'eat'})[k]||'';}
+function renderRoute(){
+  const p=P(),g=G();
+  $('days').innerHTML=p.days.map((d,di)=>{
+    const done=d.items.filter(i=>g.stops[i.id]).length;
+    return `<article class="card" id="day-${d.id}"><div class="card-h"><div style="min-width:0"><div class="eyebrow">${esc(d.label)}${d.date?' · '+esc(d.date):''}</div><h2 style="margin-top:2px">${esc(d.route||'Chưa đặt chặng')}</h2>${d.km?`<div class="route">${esc(d.km)}</div>`:''}</div>
+      <div class="hbtns">${EDIT?eb('day',d.id,d.label)+mv('day',d.id,d.label):''}<span class="pill${d.items.length&&done===d.items.length?' done':''}" data-daypill="${d.id}">${done}/${d.items.length}</span></div></div>
+      <div class="list">${d.items.length?d.items.map(it=>{const on=!!g.stops[it.id];
+        return `<div class="row${on?' is-done':''}" id="row-${it.id}">${ck('s:'+it.id,on,it.t)}<div class="body">
+          <div class="top">${it.time?`<span class="time">${esc(it.time)}</span>`:''}<span class="ttl">${esc(it.t)}</span></div>
+          ${it.n&&it.n.length?`<div class="notes">${it.n.map(([k,v])=>`<span class="note ${noteKind(k)}">${esc(v)}</span>`).join('')}</div>`:''}
+          ${(it.q||it.food||EDIT)?`<div class="acts">${it.q?`<a class="btn" href="${qUrl(it.q)}" target="_blank" rel="noopener">${PIN}Chỉ đường</a>`:''}${it.food&&p.areas.some(a=>a.id===it.food)?`<button class="btn ghost" type="button" data-goarea="${it.food}">${BOWL}Quán gần đây</button>`:''}${EDIT?`<span class="edtools">${eb('item',d.id+'|'+it.id,it.t)}${mv('item',d.id+'|'+it.id,it.t)}</span>`:''}</div>`:''}
+        </div></div>`;}).join(''):`<p class="muted empty">Chưa có điểm nào trong ngày này.${EDIT?'':' Bấm Sửa để thêm.'}</p>`}</div>
+      ${EDIT?`<div class="addline"><button class="btn solid" type="button" data-add="item" data-ids="${d.id}">＋ Thêm điểm</button></div>`:''}</article>`;}).join('')
+    +(EDIT?`<button class="btn big" type="button" data-add="day">＋ Thêm ngày</button>`:'');
+  markNext();
+}
+const allStops=()=>P().days.flatMap(d=>d.items);
+function nextStop(){return allStops().find(s=>!G().stops[s.id]);}
+function markNext(){
+  document.querySelectorAll('.row.next').forEach(r=>r.classList.remove('next'));
+  const n=nextStop(),total=allStops().length;
+  $('nextName').textContent=n?n.t:(total?'Đã đi hết lộ trình!':'Chưa có điểm nào');
+  $('goNext').hidden=!n;
+  if(n){const r=$('row-'+n.id);if(r)r.classList.add('next');}
+}
+function foodVisible(f){const fl=DB.ui.filter,g=G();
+  if(fl==='in')return f.tag==='in'||f.tag==='uv';if(fl==='sg')return f.tag==='sg';
+  if(fl==='done')return !!g.food[f.id];if(fl==='todo')return !g.food[f.id];return true;}
+const TAGTXT={in:'Có trong lịch',sg:'Gợi ý thêm',uv:'Trong lịch · chưa xác minh'};
+function renderFood(){
+  const p=P(),g=G();
+  document.querySelectorAll('#foodFilter button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.f===DB.ui.filter?'true':'false'));
+  let h='';
+  p.areas.forEach(a=>{const all=p.places.filter(f=>f.a===a.id),list=all.filter(foodVisible),done=all.filter(f=>g.food[f.id]).length;
+    h+=`<article class="card food" id="area-${a.id}"><div class="card-h"><div style="min-width:0"><div class="eyebrow">${esc(a.when||'Khu vực')}</div><h2 style="margin-top:2px">${esc(a.name)}</h2></div>
+      <div class="hbtns">${EDIT?eb('area',a.id,a.name)+mv('area',a.id,a.name):''}<span class="pill${done&&done===all.length?' done':''}" data-areapill="${a.id}">${done}/${all.length} đã ăn</span></div></div>
+      <div class="list">${list.length?list.map(f=>{const on=!!g.food[f.id];
+        return `<div class="row${on?' is-done':''}">${ck('f:'+f.id,on,'Đã ăn ở '+f.name)}<div class="body">
+          <div class="top"><span class="ttl">${esc(f.name)}</span><span class="tag ${f.tag||'sg'}">${TAGTXT[f.tag]||TAGTXT.sg}</span></div>
+          ${f.hours?`<div class="meta"><span>${esc(f.hours)}</span></div>`:''}
+          ${f.dish?`<div class="muted" style="font-size:14px">${esc(f.dish)}</div>`:''}
+          <div class="acts"><a class="btn" href="${placeUrl(f)}" target="_blank" rel="noopener">${PIN}Chỉ đường</a><button class="btn ghost" type="button" data-map="${f.id}" aria-expanded="false">${MAPI}<span>Xem bản đồ</span></button>${EDIT?`<span class="edtools">${eb('place',f.id,f.name)}${mv('place',f.id,f.name)}</span>`:''}</div>
+          <div class="mapslot" data-slot="${f.id}"></div></div></div>`;}).join(''):`<p class="muted empty">${all.length?'Không có quán nào khớp bộ lọc ở khu này.':'Chưa có quán nào ở khu này.'}</p>`}</div>
+      <div class="area-more">${a.q?`<a class="btn ghost" href="${qUrl(a.q)}" target="_blank" rel="noopener">${SEARCH}Tìm thêm quán ở ${esc(a.name)}</a>`:''}${EDIT?`<button class="btn solid" type="button" data-add="place" data-ids="${a.id}">＋ Thêm quán</button>`:''}</div></article>`;});
+  if(!p.areas.length)h=`<article class="card"><p class="muted" style="margin:0">Chưa có khu ăn uống nào.${EDIT?'':' Bấm Sửa ở đầu trang để thêm khu vực và quán.'}</p></article>`;
+  if(EDIT)h+=`<button class="btn big" type="button" data-add="area">＋ Thêm khu vực ăn uống</button>`;
+  $('areas').innerHTML=h;
+}
+function renderDishes(){
+  const p=P(),g=G(),n=p.dishes.filter(d=>g.dishes[d.id]).length;$('dishCount').textContent=`${n}/${p.dishes.length}`;
+  $('dishes').innerHTML=p.dishes.map(d=>EDIT?`<button type="button" class="chipbtn" data-ed="dish" data-ids="${d.id}">${PEN.replace('aria-hidden="true"','aria-hidden="true" style="width:14px;height:14px"')}${esc(d.t)}</button>`
+      :`<button type="button" class="chipbtn" data-dish="${d.id}" aria-pressed="${g.dishes[d.id]?'true':'false'}">${esc(d.t)}</button>`).join('')
+    +(EDIT?`<button type="button" class="chipbtn add" data-add="dish">＋ Thêm món</button>`:'')
+    +(!p.dishes.length&&!EDIT?`<span class="muted" style="font-size:14px">Chưa có món nào. Bấm Sửa để thêm.</span>`:'');
+}
+function renderPack(){
+  const p=P(),g=G();
+  $('packs').innerHTML=p.packs.map(c=>{const done=c.items.filter(i=>g.pack[i.id]).length;
+    return `<article class="card pack" data-cat="${c.id}"><div class="card-h"><h2>${esc(c.name)}</h2><div class="hbtns">${EDIT?eb('cat',c.id,c.name)+mv('cat',c.id,c.name):''}<span class="pill${c.items.length&&done===c.items.length?' done':''}" data-catpill="${c.id}">${done}/${c.items.length}</span></div></div>
+      <div class="list">${c.items.map(it=>{const on=!!g.pack[it.id];return `<div class="row${on?' is-done':''}">${ck('p:'+it.id,on,it.t)}<div class="body" style="flex-direction:row;justify-content:space-between;align-items:center;gap:8px"><span class="ttl">${esc(it.t)}</span>${EDIT?`<span class="edtools">${eb('pitem',c.id+'|'+it.id,it.t)}</span>`:''}</div></div>`;}).join('')}</div>
+      <form class="addrow" data-addpack="${c.id}"><label for="add-${c.id}" class="sr">Thêm đồ vào ${esc(c.name)}</label><input id="add-${c.id}" type="text" maxlength="80" placeholder="Thêm món khác…" autocomplete="off"><button class="btn solid" type="submit">Thêm</button></form></article>`;}).join('')
+    +(EDIT?`<button class="btn big" type="button" data-add="cat">＋ Thêm nhóm đồ</button>`:'');
+}
+function stats(){
+  const p=P(),g=G(),st=allStops(),sd=st.filter(s=>g.stops[s.id]).length;
+  $('sStops').textContent=`${sd}/${st.length}`;$('bStops').style.width=(st.length?sd/st.length*100:0)+'%';
+  const fd=p.places.filter(f=>g.food[f.id]).length;$('sFood').textContent=fd;$('bFood').style.width=(p.places.length?fd/p.places.length*100:0)+'%';
+  const all=p.packs.flatMap(c=>c.items),pd=all.filter(i=>g.pack[i.id]).length;$('sPack').textContent=`${pd}/${all.length}`;$('bPack').style.width=(all.length?pd/all.length*100:0)+'%';
+  p.days.forEach(d=>{const el=document.querySelector(`[data-daypill="${d.id}"]`);if(!el)return;const n=d.items.filter(i=>g.stops[i.id]).length;el.textContent=`${n}/${d.items.length}`;el.classList.toggle('done',!!d.items.length&&n===d.items.length);});
+  p.areas.forEach(a=>{const el=document.querySelector(`[data-areapill="${a.id}"]`);if(!el)return;const all=p.places.filter(f=>f.a===a.id),n=all.filter(f=>g.food[f.id]).length;el.textContent=`${n}/${all.length} đã ăn`;el.classList.toggle('done',!!n&&n===all.length);});
+  p.packs.forEach(c=>{const el=document.querySelector(`[data-catpill="${c.id}"]`);if(!el)return;const n=c.items.filter(i=>g.pack[i.id]).length;el.textContent=`${n}/${c.items.length}`;el.classList.toggle('done',!!c.items.length&&n===c.items.length);});
+  $('dishCount').textContent=`${p.dishes.filter(d=>g.dishes[d.id]).length}/${p.dishes.length}`;
+}
+function tick(){const p=P(),now=Date.now(),el=$('cdText'),s=parseLocal(p.start),e=parseLocal(p.end);
+  if(isNaN(s)){el.textContent='Chưa đặt giờ khởi hành';return;}
+  if(now<s){let m=Math.floor((s-now)/60000);const d=Math.floor(m/1440);m-=d*1440;const h=Math.floor(m/60);m-=h*60;el.textContent=d>0?`Còn ${d} ngày ${h} giờ là lên đường`:`Còn ${h} giờ ${m} phút là lên đường`;}
+  else if(isNaN(e)||now<e)el.textContent='Đang trên hành trình, đi vui nhé!';
+  else el.textContent='Chuyến đi đã khép lại';}
+const TABS=['route','food','pack'];
+function setTab(t,focus){DB.ui.tab=t;TABS.forEach(k=>{const on=k===t;$('t-'+k).setAttribute('aria-selected',on?'true':'false');$('t-'+k).tabIndex=on?0:-1;$('p-'+k).hidden=!on;});if(focus)$('t-'+t).focus();}
+function renderAll(){renderHeader();renderRoute();renderFood();renderDishes();renderPack();stats();setTab(DB.ui.tab||'route');tick();status();if(window.__hgSyncView)window.__hgSyncView();}
+
+
+/* =====================================================================
+   EDIT SHEET
+   ===================================================================== */
+const hook=(...op)=>{try{if(window.__hgSync)window.__hgSync.local(DB.cur,...op);}catch(e){}};
+let SH=null,pendingRender=false;
+function openSheet(o){
+  SH=o;SH.armed=false;$('sheetTitle').textContent=o.title;$('sheetErr').hidden=true;
+  $('sheetFields').innerHTML=o.fields.map((f,i)=>{const id='sf'+i,v=f.value==null?'':f.value;
+    const lab=`<label for="${id}">${esc(f.label)}${f.req?' *':''}</label>`,hint=f.hint?`<small>${esc(f.hint)}</small>`:'';
+    if(f.type==='textarea')return `<div class="fld">${lab}<textarea id="${id}" data-k="${f.k}" rows="${f.rows||3}">${esc(v)}</textarea>${hint}</div>`;
+    if(f.type==='select')return `<div class="fld">${lab}<select id="${id}" data-k="${f.k}">${f.options.map(([ov,ol])=>`<option value="${esc(ov)}"${String(ov)===String(v)?' selected':''}>${esc(ol)}</option>`).join('')}</select>${hint}</div>`;
+    return `<div class="fld">${lab}<input id="${id}" data-k="${f.k}" type="${f.type==='datetime'?'datetime-local':'text'}" value="${esc(v)}" maxlength="${f.max||160}" autocomplete="off">${hint}</div>`;}).join('');
+  $('sheetDel').hidden=!o.onDelete;$('sheetDel').textContent=o.delLabel||'Xoá';
+  $('sheet').hidden=false;$('sheetBg').hidden=false;document.documentElement.style.overflow='hidden';
+  const first=$('sheetFields').querySelector('input,textarea,select');if(first)setTimeout(()=>first.focus(),30);
+}
+function closeSheet(){SH=null;$('sheet').hidden=true;$('sheetBg').hidden=true;document.documentElement.style.overflow='';if(pendingRender){pendingRender=false;renderAll();}}
+$('sheetForm').addEventListener('submit',e=>{e.preventDefault();if(!SH)return;
+  const vals={};$('sheetFields').querySelectorAll('[data-k]').forEach(el=>{vals[el.dataset.k]=el.value.trim();});
+  const miss=SH.fields.find(f=>f.req&&!vals[f.k]);
+  if(miss){$('sheetErr').textContent=`Cần điền “${miss.label}”.`;$('sheetErr').hidden=false;return;}
+  const fn=SH.onSave;closeSheet();fn(vals);});
+$('sheetCancel').addEventListener('click',closeSheet);
+$('sheetBg').addEventListener('click',closeSheet);
+$('sheetDel').addEventListener('click',()=>{if(!SH)return;if(!SH.armed){SH.armed=true;$('sheetDel').textContent='Bấm lần nữa để xoá';return;}const fn=SH.onDelete;closeSheet();fn();});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&SH)closeSheet();});
+
+/* =====================================================================
+   PLAN EDITING
+   ===================================================================== */
+function planChanged(msg){T().ts=Date.now();save();renderAll();hook('plan');if(msg)toast(msg);}
+const NOTE_PRE={warn:'! ',tix:'$ ',eat:'@ ',info:''};
+const notesToText=n=>(n||[]).map(([k,v])=>(NOTE_PRE[k]||'')+v).join('\n');
+const textToNotes=t=>t.split('\n').map(s=>s.trim()).filter(Boolean).map(s=>s[0]==='!'?['warn',s.slice(1).trim()]:s[0]==='$'?['tix',s.slice(1).trim()]:s[0]==='@'?['eat',s.slice(1).trim()]:['info',s]);
+const areaOpts=()=>[['','Không gắn']].concat(P().areas.map(a=>[a.id,a.name]));
+const dropProg=(map,ids)=>{const g=G();ids.forEach(id=>{if(g[map][id]){delete g[map][id];hook('set',map,id,false);}});};
+function findItem(dayId,itemId){const d=P().days.find(x=>x.id===dayId);return [d,d?d.items.find(x=>x.id===itemId):null];}
+
+function editTrip(){const p=P(),many=DB.order.length>1;
+  openSheet({title:'Thông tin chuyến đi',fields:[
+    {k:'name',label:'Tên chuyến đi',req:true,value:p.name,max:60},
+    {k:'sub',label:'Mô tả ngắn',type:'textarea',value:p.sub,rows:2},
+    {k:'start',label:'Giờ khởi hành',type:'datetime',value:p.start,hint:'Dùng cho đồng hồ đếm ngược (giờ Việt Nam).'},
+    {k:'end',label:'Giờ về tới nhà',type:'datetime',value:p.end}],
+   onSave:v=>{Object.assign(p,{name:v.name,sub:v.sub,start:v.start,end:v.end});planChanged('Đã lưu thông tin chuyến đi');},
+   delLabel:many?'Xoá chuyến khỏi máy này':null,
+   onDelete:many?()=>{const lid=DB.cur,was=T().code;delete DB.trips[lid];DB.order=DB.order.filter(l=>l!==lid);DB.cur=DB.order[0];save();renderAll();switched();toast(was?'Đã xoá khỏi máy này, máy khác vẫn còn chuyến':'Đã xoá chuyến đi');}:null});}
+function editDay(id){const p=P(),isNew=!id,d=isNew?{id:uid('d'),label:'Ngày '+(p.days.length+1),date:'',route:'',km:'',items:[]}:p.days.find(x=>x.id===id);if(!d)return;
+  openSheet({title:isNew?'Thêm ngày':'Sửa ngày',fields:[
+    {k:'label',label:'Tên ngày',req:true,value:d.label,hint:'Ví dụ: Ngày 1, Đêm 0'},{k:'date',label:'Thứ, ngày',value:d.date,hint:'Ví dụ: Chủ nhật · 22/11'},
+    {k:'route',label:'Chặng đi',value:d.route,hint:'Ví dụ: TP Hà Giang – Quản Bạ – Yên Minh'},{k:'km',label:'Quãng đường',value:d.km}],
+   onSave:v=>{Object.assign(d,v);if(isNew)p.days.push(d);planChanged(isNew?'Đã thêm ngày':'Đã lưu');},
+   onDelete:isNew?null:()=>{dropProg('stops',d.items.map(i=>i.id));p.days=p.days.filter(x=>x!==d);planChanged('Đã xoá ngày');},
+   delLabel:isNew?null:`Xoá ngày này (${d.items.length} điểm)`});}
+function editItem(dayId,itemId){const [d,old]=itemId?findItem(dayId,itemId):[P().days.find(x=>x.id===dayId),null];if(!d)return;const it=old||{id:uid('i'),t:''};
+  openSheet({title:old?'Sửa điểm':'Thêm điểm vào '+d.label,fields:[
+    {k:'time',label:'Giờ',value:it.time,hint:'Ví dụ: 06:00 hoặc 16:00–16:30, có thể để trống'},
+    {k:'t',label:'Địa điểm, việc cần làm',req:true,value:it.t,max:200},
+    {k:'n',label:'Ghi chú (mỗi dòng một ghi chú)',type:'textarea',value:notesToText(it.n),rows:3,hint:'Đầu dòng: ! cảnh báo đỏ · $ vé, giá · @ món ăn · còn lại là ghi chú thường'},
+    {k:'q',label:'Tìm trên Google Maps',value:it.q,hint:'Tên địa điểm để nút Chỉ đường mở đúng chỗ, để trống thì ẩn nút'},
+    {k:'food',label:'Gợi ý quán ăn của khu',type:'select',value:it.food||'',options:areaOpts()}],
+   onSave:v=>{it.time=v.time;it.t=v.t;it.n=textToNotes(v.n);it.q=v.q;it.food=v.food;if(!old)d.items.push(it);planChanged(old?'Đã lưu':'Đã thêm điểm');},
+   onDelete:old?()=>{dropProg('stops',[it.id]);d.items=d.items.filter(x=>x!==it);planChanged('Đã xoá điểm');}:null});}
+function editArea(id){const p=P(),isNew=!id,a=isNew?{id:uid('a'),name:'',when:'',q:''}:p.areas.find(x=>x.id===id);if(!a)return;const n=p.places.filter(f=>f.a===a.id).length;
+  openSheet({title:isNew?'Thêm khu vực ăn uống':'Sửa khu vực',fields:[
+    {k:'name',label:'Tên khu vực',req:true,value:a.name,hint:'Ví dụ: Đồng Văn'},{k:'when',label:'Ăn vào lúc nào',value:a.when,hint:'Ví dụ: Tối ngày 2 · sáng ngày 3'},
+    {k:'q',label:'Từ khoá “Tìm thêm quán” trên Google Maps',value:a.q,hint:'Ví dụ: quán ăn ngon phố cổ Đồng Văn'}],
+   onSave:v=>{Object.assign(a,v);if(isNew)p.areas.push(a);planChanged(isNew?'Đã thêm khu vực':'Đã lưu');},
+   onDelete:isNew?null:()=>{const ids=p.places.filter(f=>f.a===a.id).map(f=>f.id);dropProg('food',ids);p.places=p.places.filter(f=>f.a!==a.id);p.areas=p.areas.filter(x=>x!==a);p.days.forEach(d=>d.items.forEach(i=>{if(i.food===a.id)i.food='';}));planChanged('Đã xoá khu vực');},
+   delLabel:isNew?null:`Xoá khu này${n?` và ${n} quán`:''}`});}
+function editPlace(id,areaId){const p=P(),old=id?p.places.find(x=>x.id===id):null,f=old||{id:uid('f'),a:areaId,tag:'sg',name:''};if(!p.areas.length)return;
+  openSheet({title:old?'Sửa quán':'Thêm quán',fields:[
+    {k:'name',label:'Tên quán',req:true,value:f.name},{k:'a',label:'Khu vực',type:'select',value:f.a,options:p.areas.map(a=>[a.id,a.name])},
+    {k:'tag',label:'Loại',type:'select',value:f.tag||'sg',options:[['in','Có trong lịch'],['sg','Gợi ý thêm'],['uv','Trong lịch · chưa xác minh']]},
+    {k:'dish',label:'Món nên gọi, ghi chú',type:'textarea',value:f.dish,rows:2},{k:'hours',label:'Giờ mở cửa',value:f.hours},
+    {k:'maps',label:'Link Google Maps hoặc từ khoá',value:f.link||f.q||'',hint:f.pid?'Để trống để giữ vị trí Google Maps có sẵn':'Dán link chia sẻ từ Google Maps, hoặc gõ tên quán kèm địa danh'}],
+   onSave:v=>{const before=(f.link||f.q||'');Object.assign(f,{name:v.name,a:v.a,tag:v.tag,dish:v.dish,hours:v.hours});
+     if(v.maps!==before){delete f.link;delete f.q;if(v.maps){delete f.pid;delete f.ll;if(/^https?:\/\//i.test(v.maps))f.link=v.maps;else f.q=v.maps;}}
+     if(!old)p.places.push(f);planChanged(old?'Đã lưu':'Đã thêm quán');},
+   onDelete:old?()=>{dropProg('food',[f.id]);p.places=p.places.filter(x=>x!==f);planChanged('Đã xoá quán');}:null});}
+function editDish(id){const p=P(),old=id?p.dishes.find(x=>x.id===id):null,d=old||{id:uid('ds'),t:''};
+  openSheet({title:old?'Sửa món':'Thêm món phải thử',fields:[{k:'t',label:'Tên món',req:true,value:d.t,max:80}],
+   onSave:v=>{d.t=v.t;if(!old)p.dishes.push(d);planChanged(old?'Đã lưu':'Đã thêm món');},
+   onDelete:old?()=>{dropProg('dishes',[d.id]);p.dishes=p.dishes.filter(x=>x!==d);planChanged('Đã xoá món');}:null});}
+function editCat(id){const p=P(),old=id?p.packs.find(x=>x.id===id):null,c=old||{id:uid('c'),name:'',items:[]};
+  openSheet({title:old?'Sửa nhóm đồ':'Thêm nhóm đồ',fields:[{k:'name',label:'Tên nhóm',req:true,value:c.name,max:60}],
+   onSave:v=>{c.name=v.name;if(!old)p.packs.push(c);planChanged(old?'Đã lưu':'Đã thêm nhóm');},
+   onDelete:old?()=>{dropProg('pack',c.items.map(i=>i.id));p.packs=p.packs.filter(x=>x!==c);planChanged('Đã xoá nhóm');}:null,
+   delLabel:old?`Xoá nhóm (${c.items.length} món)`:null});}
+function editPItem(catId,itemId){const c=P().packs.find(x=>x.id===catId),it=c&&c.items.find(x=>x.id===itemId);if(!it)return;
+  openSheet({title:'Sửa đồ cần mang',fields:[{k:'t',label:'Tên đồ',req:true,value:it.t,max:80}],
+   onSave:v=>{it.t=v.t;planChanged('Đã lưu');},
+   onDelete:()=>{dropProg('pack',[it.id]);c.items=c.items.filter(x=>x!==it);planChanged('Đã xoá');}});}
+function move(kind,ids,dir){const p=P();let arr,i;
+  const sw=(a,x)=>{const j=x+dir;if(x<0||j<0||j>=a.length)return false;[a[x],a[j]]=[a[j],a[x]];return true;};
+  if(kind==='day'){arr=p.days;i=arr.findIndex(x=>x.id===ids);if(!sw(arr,i))return;}
+  else if(kind==='item'){const [dId,iId]=ids.split('|'),d=p.days.find(x=>x.id===dId);i=d.items.findIndex(x=>x.id===iId);
+    if(!sw(d.items,i)){const di=p.days.indexOf(d),nd=p.days[di+dir];if(!nd)return;const [it]=d.items.splice(i,1);if(dir<0)nd.items.push(it);else nd.items.unshift(it);}}
+  else if(kind==='area'){arr=p.areas;i=arr.findIndex(x=>x.id===ids);if(!sw(arr,i))return;}
+  else if(kind==='place'){const f=p.places.find(x=>x.id===ids),same=p.places.filter(x=>x.a===f.a),k=same.indexOf(f),o=same[k+dir];if(!o)return;const a=p.places.indexOf(f),b=p.places.indexOf(o);[p.places[a],p.places[b]]=[p.places[b],p.places[a]];}
+  else if(kind==='cat'){arr=p.packs;i=arr.findIndex(x=>x.id===ids);if(!sw(arr,i))return;}
+  planChanged();
+  const sel=document.querySelector(`[data-mv="${kind}"][data-ids="${CSS.escape(ids)}"][data-dir="${dir}"]`);if(sel)sel.focus();}
+function newTripSheet(){
+  openSheet({title:'Tạo chuyến đi mới',fields:[
+    {k:'name',label:'Tên chuyến đi',req:true,value:'',max:60,hint:'Ví dụ: Sapa 2N1Đ'},
+    {k:'tpl',label:'Bắt đầu từ',type:'select',value:'blank',options:Object.entries(TEMPLATES).map(([k,v])=>[k,v.name])},
+    {k:'start',label:'Giờ khởi hành',type:'datetime',value:''}],
+   onSave:v=>{const plan=TEMPLATES[v.tpl].make(v.name,v.start);plan.name=v.name;if(v.start)plan.start=v.start;
+     const lid=newTrip(plan,null);DB.cur=lid;EDIT=v.tpl==='blank';save();renderAll();switched();toast(EDIT?'Đã tạo chuyến mới, thêm ngày và điểm đến nhé':'Đã tạo chuyến mới từ mẫu');}});}
+
+/* =====================================================================
+   EVENTS
+   ===================================================================== */
+TABS.forEach((k,i)=>{const b=$('t-'+k);b.addEventListener('click',()=>{setTab(k);save();});
+  b.addEventListener('keydown',e=>{if(e.key==='ArrowRight'||e.key==='ArrowLeft'){e.preventDefault();setTab(TABS[(i+(e.key==='ArrowRight'?1:2))%3],true);save();}});});
+document.addEventListener('change',e=>{const t=e.target;
+  if(t.id==='tripSel'){DB.cur=t.value;save();renderAll();switched();return;}
+  if(!t.matches('.ck input'))return;
+  const [kind,...rest]=t.dataset.id.split(':'),id=rest.join(':'),map={s:'stops',f:'food',p:'pack'}[kind],g=G();
+  if(t.checked)g[map][id]=true;else delete g[map][id];
+  hook('set',map,id,t.checked);
+  const row=t.closest('.row');if(row)row.classList.toggle('is-done',t.checked);
+  T().ts=Date.now();save();stats();
+  if(kind==='s')markNext();
+  if(kind==='f'&&(DB.ui.filter==='done'||DB.ui.filter==='todo'))renderFood();});
+document.addEventListener('click',e=>{
+  const ed=e.target.closest('[data-ed]');
+  if(ed){const k=ed.dataset.ed,ids=ed.dataset.ids||'';const [a,b]=ids.split('|');
+    ({day:()=>editDay(a),item:()=>editItem(a,b),area:()=>editArea(a),place:()=>editPlace(a),dish:()=>editDish(a),cat:()=>editCat(a),pitem:()=>editPItem(a,b)})[k]();return;}
+  const ad=e.target.closest('[data-add]');
+  if(ad){const k=ad.dataset.add,ids=ad.dataset.ids;({day:()=>editDay(),item:()=>editItem(ids),area:()=>editArea(),place:()=>editPlace(null,ids),dish:()=>editDish(),cat:()=>editCat()})[k]();return;}
+  const mvb=e.target.closest('[data-mv]');
+  if(mvb){move(mvb.dataset.mv,mvb.dataset.ids,+mvb.dataset.dir);return;}
+  const ga=e.target.closest('[data-goarea]');
+  if(ga){setTab('food');if(DB.ui.filter!=='all'){DB.ui.filter='all';renderFood();}save();const c=$('area-'+ga.dataset.goarea);if(c)c.scrollIntoView({behavior:'smooth',block:'start'});return;}
+  const mp=e.target.closest('[data-map]');
+  if(mp){const f=P().places.find(x=>x.id===mp.dataset.map),slot=document.querySelector(`[data-slot="${CSS.escape(f.id)}"]`);
+    if(slot.firstChild){slot.innerHTML='';mp.setAttribute('aria-expanded','false');mp.lastChild.textContent='Xem bản đồ';return;}
+    slot.innerHTML=`<div class="mapbox"><p>Nếu bản đồ không hiện ở đây, bấm “Chỉ đường” để mở Google Maps.</p><iframe title="Bản đồ ${esc(f.name)}" loading="lazy" referrerpolicy="no-referrer-when-downgrade" src="${embedUrl(f)}"></iframe></div>`;
+    mp.setAttribute('aria-expanded','true');mp.lastChild.textContent='Ẩn bản đồ';return;}
+  const fb=e.target.closest('#foodFilter button');
+  if(fb){DB.ui.filter=fb.dataset.f;renderFood();save();return;}
+  const dish=e.target.closest('[data-dish]');
+  if(dish){const id=dish.dataset.dish,g=G();if(g.dishes[id])delete g.dishes[id];else g.dishes[id]=true;hook('set','dishes',id,!!g.dishes[id]);
+    dish.setAttribute('aria-pressed',g.dishes[id]?'true':'false');T().ts=Date.now();save();stats();return;}
+});
+document.addEventListener('submit',e=>{const f=e.target.closest('[data-addpack]');if(!f)return;e.preventDefault();
+  const inp=f.querySelector('input'),t=inp.value.trim();if(!t)return;const c=P().packs.find(x=>x.id===f.dataset.addpack);if(!c)return;
+  c.items.push({id:c.id+':'+uid('c'),t:t.slice(0,80)});planChanged('Đã thêm vào hành trang');const again=$('add-'+c.id);if(again)again.focus();});
+$('goNext').addEventListener('click',()=>{const n=nextStop();if(!n)return;setTab('route');save();const r=$('row-'+n.id);if(r)r.scrollIntoView({behavior:'smooth',block:'center'});});
+$('editBtn').addEventListener('click',()=>{EDIT=!EDIT;renderAll();if(EDIT)toast('Bấm biểu tượng bút để sửa, mũi tên để đổi thứ tự');});
+$('editDone').addEventListener('click',()=>{EDIT=false;renderAll();});
+$('tripInfo').addEventListener('click',editTrip);
+$('newTripBtn').addEventListener('click',newTripSheet);
+
+/* backup / restore / clear */
+let bkMode='';
+const enc=o=>'HG2:'+btoa(unescape(encodeURIComponent(JSON.stringify(o))));
+function dec(s){s=s.trim();const v=s.slice(0,4);if(v!=='HG2:'&&v!=='HG1:')throw new Error('fmt');const o=JSON.parse(decodeURIComponent(escape(atob(s.slice(4)))));if(!o||typeof o!=='object')throw new Error('fmt');return {v,o};}
+$('bkBtn').addEventListener('click',()=>{bkMode='backup';$('bkBox').hidden=false;$('clrBox').hidden=true;$('bkLabel').textContent=`Mã sao lưu chuyến “${P().name}”. Gửi mã này sang máy khác rồi bấm “Khôi phục từ mã”.`;$('bkText').value=enc({plan:P(),prog:G()});$('bkText').readOnly=true;$('bkAct').textContent='Sao chép';});
+$('rsBtn').addEventListener('click',()=>{bkMode='restore';$('bkBox').hidden=false;$('clrBox').hidden=true;$('bkLabel').textContent='Dán mã sao lưu vào đây. Chuyến đi sẽ được thêm thành một chuyến mới trên máy này.';$('bkText').value='';$('bkText').readOnly=false;$('bkAct').textContent='Khôi phục';$('bkText').focus();});
+$('bkClose').addEventListener('click',()=>{$('bkBox').hidden=true;});
+$('bkAct').addEventListener('click',()=>{
+  if(bkMode==='backup'){const ta=$('bkText');if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(ta.value).then(()=>toast('Đã sao chép mã sao lưu')).catch(()=>{ta.select();toast('Mã đã được chọn, bấm giữ để sao chép');});}else{ta.select();toast('Mã đã được chọn, bấm giữ để sao chép');}return;}
+  try{const {v,o}=dec($('bkText').value);let plan,prog=emptyProg();
+    if(v==='HG2:'){plan=o.plan;prog=Object.assign(emptyProg(),o.prog);}
+    else{plan=tplHaGiang();['stops','food','pack'].forEach(m=>prog[m]=Object.assign({},o[m]));Object.keys(o.dishes||{}).forEach(k=>prog.dishes['ds'+k]=true);Object.entries(o.custom||{}).forEach(([cat,l])=>{const c=plan.packs.find(x=>x.id===cat);if(c)(l||[]).forEach(it=>c.items.push({id:it.id,t:it.t}));});}
+    if(!plan||!plan.days)throw new Error('fmt');
+    const lid=newTrip(plan,null);DB.trips[lid].prog=prog;DB.cur=lid;save();renderAll();switched();$('bkBox').hidden=true;toast('Đã khôi phục thành một chuyến mới');}
+  catch(err){toast('Mã không đúng, mã phải bắt đầu bằng HG2: hoặc HG1:');}});
+$('clrBtn').addEventListener('click',()=>{$('clrMsg').textContent=T().code?'Bỏ tick toàn bộ chuyến này trên tất cả các máy đang đồng bộ?':'Bỏ tick toàn bộ chuyến này trên máy này?';$('clrBox').hidden=false;$('bkBox').hidden=true;});
+$('clrNo').addEventListener('click',()=>{$('clrBox').hidden=true;});
+$('clrYes').addEventListener('click',()=>{T().prog=emptyProg();save();renderAll();hook('reset');$('clrBox').hidden=true;toast('Đã bỏ tick cả chuyến');});
+
+/* =====================================================================
+   BRIDGE FOR THE SYNC MODULE
+   ===================================================================== */
+function typing(){const a=document.activeElement;return !!SH||(a&&(a.tagName==='INPUT'&&a.type==='text'||a.tagName==='TEXTAREA'));}
+function syncDom(){
+  const g=G();
+  document.querySelectorAll('.ck input[data-id]').forEach(inp=>{const [k,...r]=inp.dataset.id.split(':'),id=r.join(':'),m={s:'stops',f:'food',p:'pack'}[k];
+    const on=!!g[m][id];inp.checked=on;const row=inp.closest('.row');if(row)row.classList.toggle('is-done',on);});
+  document.querySelectorAll('[data-dish]').forEach(b=>b.setAttribute('aria-pressed',g.dishes[b.dataset.dish]?'true':'false'));
+  if(DB.ui.filter==='done'||DB.ui.filter==='todo')renderFood();
+  stats();markNext();
+}
+document.addEventListener('focusout',()=>{setTimeout(()=>{if(pendingRender&&!typing()){pendingRender=false;renderAll();}},60);});
+function switched(){if(window.__hgSync&&window.__hgSync.switched)window.__hgSync.switched();}
+const normDishes=m=>{const o={};Object.keys(m||{}).forEach(k=>{if(m[k])o[/^\d+$/.test(k)?'ds'+k:k]=true;});return o;};
+function planFromV1(data,base){const plan=base?clone(base):tplHaGiang();Object.entries(data.custom||{}).forEach(([id,v])=>{const c=v&&plan.packs.find(x=>x.id===v.cat);if(c&&!c.items.some(i=>i.id===id))c.items.push({id,t:String(v.t||'')});});return plan;}
+function progFrom(data){return {stops:Object.assign({},data.stops),food:Object.assign({},data.food),dishes:normDishes(data.dishes),pack:Object.assign({},data.pack)};}
+window.__hg={
+  cur:()=>T(), trip:lid=>DB.trips[lid], toast, save,
+  link(lid,code){DB.trips[lid].code=code;save();renderHeader();},
+  unlink(lid){DB.trips[lid].code=null;save();renderHeader();},
+  queue(lid,op){const t=DB.trips[lid];if(!t)return;(t.q=t.q||[]).push(op);if(t.q.length>500)t.q=t.q.slice(-500);save();},
+  takeQueue(lid){const t=DB.trips[lid];if(!t)return [];const q=t.q||[];t.q=[];save();return q;},
+  findByCode:code=>DB.order.find(l=>DB.trips[l].code===code)||null,
+  switchTo(lid){DB.cur=lid;save();renderAll();},
+  planFromV1, normDishes,
+  newFromRemote(code,data){const plan=data.plan?clone(data.plan):planFromV1(data);const lid=newTrip(plan,code);DB.trips[lid].prog=progFrom(data);DB.cur=lid;save();renderAll();return lid;},
+  toRemote(lid){const t=DB.trips[lid];return {name:t.plan.name,plan:t.plan,stops:{...t.prog.stops},food:{...t.prog.food},dishes:{...t.prog.dishes},pack:{...t.prog.pack}};},
+  applyRemote(lid,data){const t=DB.trips[lid];if(!t)return;
+    const planChangedRemote=!!data.plan&&JSON.stringify(data.plan)!==JSON.stringify(t.plan);
+    if(planChangedRemote)t.plan=clone(data.plan);
+    t.prog=progFrom(data);save();
+    if(lid!==DB.cur)return;
+    if(planChangedRemote){if(typing())pendingRender=true;else renderAll();}
+    else syncDom();}
+};
+renderAll();setInterval(tick,30000);
+addEventListener('pageshow',e=>{if(e.persisted){load();renderAll();}});
+})();
+</script>
+
+<script type="module">
+/* =====================================================================
+   ĐỒNG BỘ NHIỀU MÁY BẰNG FIREBASE (mỗi chuyến đi là một tài liệu trips/<mã>)
+   Dán firebaseConfig của bạn vào FIREBASE_CONFIG bên dưới
+   (Firebase Console → Project settings → Your apps → Web app → SDK setup and configuration → Config).
+   Để trống apiKey thì trang chỉ lưu trên máy, không đồng bộ.
+   ===================================================================== */
+const FIREBASE_CONFIG = {
+    apiKey: "AIzaSyDo_est3pQoF3yykOe8tXC3KyIws6bE6w8",
+    authDomain: "first-project-by-me.firebaseapp.com",
+    projectId: "first-project-by-me",
+    storageBucket: "first-project-by-me.firebasestorage.app",
+    messagingSenderId: "856175855336",
+    appId: "1:856175855336:web:043a336a198dd7a253ab5d",
+    measurementId: "G-6XVV2CPGTB"
+};
+const SDK = "https://www.gstatic.com/firebasejs/13.2.0/";
+
+const hg = window.__hg, $ = id => document.getElementById(id);
+const ENABLED = !!FIREBASE_CONFIG.apiKey;
+let FB = null, db = null, ready = false, ref = null, unsub = null, curLid = null, last = {text:'Đang kiểm tra…', kind:''};
+
+const hhmm = () => new Date().toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit'});
+const ERR = {
+  'permission-denied':'Firebase từ chối quyền: kiểm tra lại Rules và đăng nhập ẩn danh.',
+  'not-found':'Chuyến này không còn trên Firebase.',
+  'unavailable':'Đang mất mạng, sẽ thử lại khi có sóng.',
+  'auth/operation-not-allowed':'Chưa bật đăng nhập Anonymous trong Firebase.',
+  'auth/network-request-failed':'Không kết nối được, kiểm tra mạng.',
+  'auth/api-key-not-valid.-please-pass-a-valid-api-key.':'apiKey không đúng, kiểm tra lại firebaseConfig.'
+};
+const errText = e => ERR[e && e.code] || ('Lỗi đồng bộ: ' + ((e && (e.code || e.message)) || 'không rõ'));
+
+function setStatus(text, kind){
+  last = {text, kind: kind || ''};
+  const el = $('syncStatus'); el.innerHTML = `<span class="dot ${last.kind}"></span>`; el.append(text);
+  el.classList.toggle('bad', kind === 'bad');
+  const chip = $('syncChip'), linked = ENABLED && !!hg.cur().code;
+  chip.hidden = !linked;
+  if (linked){ $('syncChipDot').className = 'dot ' + last.kind; $('syncChipText').textContent = kind === 'ok' ? 'Đã đồng bộ' : kind === 'wait' ? 'Chờ mạng' : kind === 'bad' ? 'Lỗi đồng bộ' : 'Đồng bộ'; }
+}
+function view(){
+  const t = hg.cur();
+  $('syncOff').hidden = ENABLED;
+  $('syncLocal').hidden = !ENABLED || !!t.code;
+  $('syncOn').hidden = !ENABLED || !t.code;
+  $('syncJoin').hidden = !ENABLED;
+  $('syncCodeShow').textContent = t.code || '';
+  document.querySelectorAll('[data-synctrip]').forEach(el => { el.textContent = '“' + (t.plan.name || 'Chuyến đi') + '”'; });
+  setStatus(last.text, last.kind);
+}
+window.__hgSyncView = view;
+
+function genCode(){
+  const A = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789', r = new Uint32Array(16); crypto.getRandomValues(r);
+  let s = ''; r.forEach((n, i) => { s += A[n % A.length]; if (i % 4 === 3 && i < 15) s += '-'; });
+  return 'HG-' + s;
+}
+function normCode(v){ v = String(v || '').toUpperCase().replace(/[^A-Z0-9-]/g, ''); if (!v.startsWith('HG-')) v = 'HG-' + v.replace(/^HG/, ''); return v; }
+/* The plan is stored as a JSON string: Firestore cannot hold arrays inside arrays (the notes list), and one string field is cheap to compare. */
+function fromRemote(d){
+  const o = {...d};
+  if (typeof o.plan === 'string'){ try{ o.plan = JSON.parse(o.plan); }catch(e){ delete o.plan; } }
+  if (o.plan && !Array.isArray(o.plan.days)) delete o.plan;
+  return o;
+}
+function toRemote(lid){ const r = hg.toRemote(lid); r.plan = JSON.stringify(r.plan); r.v = 2; return r; }
+
+/* one local change → one small Firestore update (each tick is its own field, so two phones never overwrite each other) */
+function apply(lid, op){
+  const {updateDoc, FieldPath, deleteField, serverTimestamp} = FB, ts = ['updatedAt', serverTimestamp()];
+  if (op[0] === 'set')   return updateDoc(ref, new FieldPath(op[1], String(op[2])), op[3] ? true : deleteField(), ...ts);
+  if (op[0] === 'plan'){ const t = hg.trip(lid); return updateDoc(ref, {plan: JSON.stringify(t.plan), name: t.plan.name, v: 2, updatedAt: serverTimestamp()}); }
+  if (op[0] === 'reset') return updateDoc(ref, {stops:{}, food:{}, dishes:{}, pack:{}, updatedAt: serverTimestamp()});
+}
+const run = (lid, op) => { const p = apply(lid, op); if (p) p.catch(e => setStatus(errText(e), 'bad')); };
+
+window.__hgSync = {
+  local(lid, ...op){
+    const t = hg.trip(lid);
+    if (!ENABLED || !t || !t.code) return;
+    if (!ready || lid !== curLid || !ref){ hg.queue(lid, op); setStatus('Chưa kết nối, sẽ gửi khi có mạng', 'wait'); return; }
+    run(lid, op);
+  },
+  switched(){ attachCurrent(); }
+};
+
+function detach(){ if (unsub) unsub(); unsub = null; ref = null; curLid = null; }
+function listen(lid){
+  unsub = FB.onSnapshot(ref, {includeMetadataChanges:true}, async snap => {
+    if (lid !== curLid) return;
+    if (!snap.exists()){ setStatus('Không tìm thấy chuyến này trên Firebase', 'bad'); return; }
+    const raw = snap.data();
+    if (!raw.plan){
+      /* tài liệu tạo từ bản cũ (chỉ có tick): nâng cấp, gộp đồ tự thêm vào lịch trình */
+      const t = hg.trip(lid), plan = hg.planFromV1(raw, t.plan);
+      try{ await FB.updateDoc(ref, {plan: JSON.stringify(plan), name: plan.name, v: 2, dishes: hg.normDishes(raw.dishes), custom: FB.deleteField(), updatedAt: FB.serverTimestamp()}); }
+      catch(e){ setStatus(errText(e), 'bad'); }
+      return;
+    }
+    hg.applyRemote(lid, fromRemote(raw));
+    if (snap.metadata.hasPendingWrites) setStatus('Đang gửi thay đổi…', 'wait');
+    else if (snap.metadata.fromCache) setStatus('Đang offline, sẽ đồng bộ khi có sóng', 'wait');
+    else setStatus('Đã đồng bộ · ' + hhmm(), 'ok');
+  }, e => { if (lid === curLid) setStatus(errText(e), 'bad'); });
+}
+function attachCurrent(){
+  detach();
+  const t = hg.cur();
+  if (!ENABLED){ view(); return; }
+  if (!ready){ view(); return; }
+  if (!t.code){ setStatus('Chuyến này chỉ lưu trên máy', ''); view(); return; }
+  curLid = t.lid; ref = FB.doc(db, 'trips', t.code);
+  setStatus('Đang tải chuyến đi…', 'wait'); view();
+  for (const op of hg.takeQueue(t.lid)) run(t.lid, op);
+  listen(t.lid);
+}
+
+$('syncCreate').addEventListener('click', async () => {
+  if (!ready){ hg.toast('Chưa kết nối được Firebase, thử lại khi có mạng'); return; }
+  const b = $('syncCreate'), lid = hg.cur().lid; b.disabled = true;
+  try{
+    const code = genCode();
+    await FB.setDoc(FB.doc(db, 'trips', code), {...toRemote(lid), createdAt: FB.serverTimestamp(), updatedAt: FB.serverTimestamp()});
+    hg.takeQueue(lid); hg.link(lid, code); attachCurrent();
+    hg.toast('Đã bật đồng bộ, gửi mã cho người đi cùng');
+  }catch(e){ setStatus(errText(e), 'bad'); }
+  b.disabled = false;
+});
+$('syncJoinForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  if (!ready){ hg.toast('Chưa kết nối được Firebase, thử lại khi có mạng'); return; }
+  const code = normCode($('syncCode').value);
+  if (code.length < 19){ hg.toast('Mã chưa đủ, mã có dạng HG-XXXX-XXXX-XXXX-XXXX'); return; }
+  const have = hg.findByCode(code);
+  if (have){ hg.switchTo(have); attachCurrent(); $('syncCode').value = ''; hg.toast('Chuyến này đã có trên máy, đã chuyển sang'); return; }
+  const btn = e.submitter || $('syncJoinForm').querySelector('button'); btn.disabled = true;
+  try{
+    const snap = await FB.getDoc(FB.doc(db, 'trips', code));
+    if (!snap.exists()){ setStatus('Không có chuyến đi nào với mã này', 'bad'); btn.disabled = false; return; }
+    hg.newFromRemote(code, fromRemote(snap.data()));
+    attachCurrent(); $('syncCode').value = ''; hg.toast('Đã mở chuyến đi dùng chung');
+  }catch(err){ setStatus(errText(err), 'bad'); }
+  btn.disabled = false;
+});
+$('syncCopy').addEventListener('click', () => {
+  const t = $('syncCodeShow').textContent;
+  if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(() => hg.toast('Đã sao chép mã chuyến đi')).catch(() => hg.toast('Bấm giữ vào mã để sao chép'));
+  else hg.toast('Bấm giữ vào mã để sao chép');
+});
+$('syncLeave').addEventListener('click', () => {
+  const t = hg.cur(); detach(); hg.unlink(t.lid); hg.takeQueue(t.lid);
+  setStatus('Đã ngừng đồng bộ, chuyến vẫn còn trên máy này', ''); view();
+  hg.toast('Máy khác vẫn giữ chuyến, nhập lại mã nếu muốn đồng bộ tiếp');
+});
+
+(async function boot(){
+  if (!ENABLED){ setStatus('Chưa bật', ''); view(); return; }
+  setStatus('Đang kết nối Firebase…', 'wait'); view();
+  try{
+    const [app, auth, fs] = await Promise.all([import(SDK + 'firebase-app.js'), import(SDK + 'firebase-auth.js'), import(SDK + 'firebase-firestore.js')]);
+    FB = fs;
+    const fapp = app.initializeApp(FIREBASE_CONFIG);
+    try{ db = fs.initializeFirestore(fapp, {localCache: fs.persistentLocalCache({tabManager: fs.persistentMultipleTabManager()})}); }
+    catch(e){ db = fs.getFirestore(fapp); }
+    const a = auth.getAuth(fapp);
+    await new Promise((res, rej) => { const off = auth.onAuthStateChanged(a, u => { if (u){ off(); res(u); } }, rej); auth.signInAnonymously(a).catch(rej); });
+    ready = true; attachCurrent();
+  }catch(e){
+    setStatus(e && e.code ? errText(e) : 'Không tải được Firebase (mất mạng hoặc trình duyệt chặn). Dữ liệu vẫn lưu trên máy.', 'bad'); view();
+  }
+})();
+</script>
+
+</body>
+</html>
