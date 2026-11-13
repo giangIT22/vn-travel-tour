@@ -1,0 +1,30 @@
+{
+  "name": "Sổ tay chuyến đi",
+  "short_name": "Sổ tay",
+  "description": "Lịch trình, quán ăn, đồ cần mang; dùng chung với người đi cùng, dùng được khi mất sóng.",
+  "lang": "vi",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f2f3fa",
+  "theme_color": "#1d2160",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
