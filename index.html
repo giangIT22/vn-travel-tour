@@ -10,10 +10,10 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap">
-<meta name="description" content="Sổ tay chuyến đi: lịch trình, quán ăn, đồ cần mang; tick lại, sửa ngay trên điện thoại và đồng bộ nhiều máy.">
+<meta name="description" content="Sổ tay chuyến đi: lịch trình, quán ăn, đồ cần mang; đăng nhập, mời người đi cùng và tick chung trên điện thoại.">
 <meta name="theme-color" content="#1d2160">
 <meta property="og:title" content="Sổ tay chuyến đi">
-<meta property="og:description" content="Lịch trình Hà Giang từ Bắc Ninh, quán ăn và checklist hành trang.">
+<meta property="og:description" content="Lịch trình, quán ăn và checklist hành trang, dùng chung với người đi cùng.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%231d2160'/%3E%3Cpath d='M8 50 26 22l9 14 6-8 15 22z' fill='%23ffc531'/%3E%3Ccircle cx='46' cy='18' r='6' fill='%23e23d7e'/%3E%3C/svg%3E">
 <style>
 /* Layout: one mobile-first column; sticky tab bar; each tab is a stack of day/area cards with large tap-target checklists */
@@ -143,12 +143,12 @@ button{font:inherit;color:inherit}
 .dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--muted);margin-right:6px;vertical-align:1px}
 .dot.ok{background:var(--teal)}.dot.wait{background:var(--sun)}.dot.bad{background:var(--warn)}
 .cdrow{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
-.syncchip{display:inline-flex;align-items:center;font-family:var(--font-display);font-weight:800;font-size:13px;line-height:1;padding:8px 12px 6px;border-radius:999px;background:var(--card);color:var(--ink);border:2px solid var(--line)}
+.syncchip{cursor:pointer;display:inline-flex;align-items:center;font-family:var(--font-display);font-weight:800;font-size:13px;line-height:1;padding:8px 12px 6px;border-radius:999px;background:var(--card);color:var(--ink);border:2px solid var(--line)}
 .toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 18px);transform:translateX(-50%);background:var(--ink);color:var(--card);font-weight:700;font-size:14px;padding:10px 16px;border-radius:999px;box-shadow:0 10px 24px var(--shadow);z-index:20;max-width:calc(100% - 32px);text-align:center}
 
 /* trip bar + edit mode */
 .tripbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
-.tripbar select{flex:1 1 140px;min-width:0;font:700 15px var(--font-body);color:var(--ink);background:var(--card);border:2px solid var(--line);border-radius:12px;padding:9px 34px 9px 12px;appearance:none;-webkit-appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%);background-position:calc(100% - 18px) 52%,calc(100% - 12px) 52%;background-size:6px 6px;background-repeat:no-repeat}
+.tripbar select{flex:1 1 110px;min-width:0;font:700 15px var(--font-body);color:var(--ink);background:var(--card);border:2px solid var(--line);border-radius:12px;padding:9px 34px 9px 12px;appearance:none;-webkit-appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%);background-position:calc(100% - 18px) 52%,calc(100% - 12px) 52%;background-size:6px 6px;background-repeat:no-repeat}
 .tripbar select:focus-visible,.fld input:focus-visible,.fld textarea:focus-visible,.fld select:focus-visible,.ib:focus-visible{outline:3px solid var(--sun);outline-offset:1px}
 .tripbar .btn{padding:10px 12px 8px;font-size:14px}
 #editBtn[aria-pressed="true"]{background:var(--sun);border-color:var(--sun);color:#1d2160}
@@ -183,6 +183,44 @@ button{font:inherit;color:inherit}
 .sheet-f .btn{padding:11px 14px 9px;font-size:15px}
 .btn.danger{border-color:var(--warn);color:var(--warn);background:transparent}
 .synctrip{font-weight:700;color:var(--ink)}
+
+/* account: login gate, invites, members */
+.gate{position:fixed;inset:0;z-index:40;background:var(--bg);overflow:auto;padding:calc(env(safe-area-inset-top,0px) + 28px) 16px calc(env(safe-area-inset-bottom,0px) + 28px)}
+.gate-in{max-width:420px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
+.gate h1{font-size:clamp(36px,10vw,46px);font-weight:800;letter-spacing:-.5px}
+.gate h1 span{color:var(--pink)}
+.gate .sub{margin:0;color:var(--muted)}
+.gate-logo{width:56px;height:56px;border-radius:16px;background:var(--ink);display:grid;place-items:center}
+.gate-logo svg{width:34px;height:34px}
+.gate-card{display:flex;flex-direction:column;gap:12px;padding:18px}
+.gate-card .seg button{flex:1;font-size:15px;padding:11px 12px 9px}
+.gate-load{margin:0;font-weight:600;color:var(--muted)}
+.showpw{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--muted);cursor:pointer}
+.showpw input{width:18px;height:18px;accent-color:var(--pink)}
+.btn.wide{justify-content:center;width:100%;padding:14px 12px 12px;font-size:16px}
+.btn[disabled]{opacity:.55;cursor:default}
+.small{font-size:13px;margin:0}
+.toast{z-index:50}
+.av{display:inline-grid;place-items:center;width:30px;height:30px;border-radius:50%;background:var(--pink);color:#fff;font:800 14px/1 var(--font-display);flex:none;text-transform:uppercase}
+.btn.acc{padding:4px;border-radius:999px;border-color:var(--line)}
+.btn.acc .av{width:34px;height:34px;font-size:15px}
+.invites{display:flex;flex-direction:column;gap:8px;margin-bottom:12px}
+.inv{display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding:12px 14px;border-radius:16px;background:var(--pink-soft);border:2px solid var(--pink)}
+.inv>div:first-child{flex:1 1 200px;font-size:15px}
+.inv .acts{display:flex;gap:6px}
+.inv .btn{padding:10px 14px 8px;font-size:14px}
+.mems{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.mems li{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:14px;background:var(--chip)}
+.mems li.pending{background:transparent;border:2px dashed var(--line)}
+.mems li.pending .av{background:var(--muted)}
+.mems .who{flex:1;min-width:0;display:flex;flex-direction:column}
+.mems .who b{font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mems .who small{font-size:12px;color:var(--muted)}
+.mems .btn{padding:8px 10px 6px}
+#inviteU{text-transform:none;font-family:var(--font-body)}
+.empty-app{display:flex;flex-direction:column;gap:12px;align-items:flex-start;margin-top:6px}
+.empty-app h2{font-size:24px;font-weight:800}
+.empty-app p{margin:0;color:var(--muted)}
 @media (prefers-reduced-motion: reduce){.bar i,.ck span{transition:none}}
 </style>
 <style>body{margin:0}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}</style>
@@ -191,19 +229,25 @@ button{font:inherit;color:inherit}
 
 <div class="wrap">
   <header class="hero">
-    <div class="tripbar"><label for="tripSel" class="sr">Chọn chuyến đi</label><select id="tripSel"></select><button class="btn" id="newTripBtn" type="button" aria-label="Tạo chuyến đi mới">＋ Mới</button><button class="btn" id="editBtn" type="button" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4z"/><path d="m13.5 6.5 4 4"/></svg><span> Sửa</span></button></div>
-    <div class="eyebrow" id="heroEyebrow">…</div>
-    <h1 id="heroTitle">Sổ tay</h1>
-    <p class="sub" id="heroSub"></p>
-    <div class="cdrow"><span class="cd" id="cd"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5M9 2h6"/></svg><span id="cdText">…</span></span><span class="syncchip" id="syncChip" hidden><span class="dot" id="syncChipDot"></span><span id="syncChipText">Đồng bộ</span></span></div>
-    <div class="stats">
+    <div class="tripbar"><label for="tripSel" class="sr">Chọn chuyến đi</label><select id="tripSel"></select><button class="btn" id="newTripBtn" type="button" aria-label="Tạo chuyến đi mới">＋ Mới</button><button class="btn acc" id="accBtn" type="button" aria-label="Tài khoản" hidden><span class="av" id="accAv">?</span></button><button class="btn" id="editBtn" type="button" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4z"/><path d="m13.5 6.5 4 4"/></svg><span> Sửa</span></button></div>
+    <div class="eyebrow" id="heroEyebrow" data-trip>…</div>
+    <h1 id="heroTitle" data-trip>Sổ tay</h1>
+    <p class="sub" id="heroSub" data-trip></p>
+    <div class="cdrow" data-trip><span class="cd" id="cd"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5M9 2h6"/></svg><span id="cdText">…</span></span><button class="syncchip" id="syncChip" type="button" hidden aria-label="Xem người đi cùng"><span class="dot" id="syncChipDot"></span><span id="syncChipText">Đồng bộ</span></button></div>
+    <div class="stats" data-trip>
       <div class="stat"><b id="sStops">0/0</b><span>Điểm đã đi</span><div class="bar"><i id="bStops"></i></div></div>
       <div class="stat food"><b id="sFood">0</b><span>Quán đã ăn</span><div class="bar"><i id="bFood"></i></div></div>
       <div class="stat pack"><b id="sPack">0/0</b><span>Đồ đã xếp</span><div class="bar"><i id="bPack"></i></div></div>
     </div>
   </header>
-
-  <div class="stick">
+  <section class="invites" id="legacy" hidden aria-label="Chuyến trên máy này"></section>
+  <section class="invites" id="invites" hidden aria-label="Lời mời vào chuyến"></section>
+  <section class="card empty-app" id="emptyApp" hidden>
+    <h2>Chưa có chuyến đi nào</h2>
+    <p>Tạo chuyến mới, hoặc nhờ người đi cùng mời bạn bằng tên đăng nhập. Lời mời sẽ hiện ngay ở đây.</p>
+    <div class="acts"><button class="btn solid" type="button" data-newtpl="hagiang">Tạo từ mẫu Hà Giang</button><button class="btn" type="button" data-newtpl="blank">Chuyến trống</button></div>
+  </section>
+  <div class="stick" data-trip>
   <nav class="tabs" role="tablist" aria-label="Phần của sổ tay">
     <button class="tab" role="tab" id="t-route" aria-controls="p-route" aria-selected="true">Lộ trình</button>
     <button class="tab" role="tab" id="t-food" aria-controls="p-food" aria-selected="false">Ăn uống</button>
@@ -212,7 +256,7 @@ button{font:inherit;color:inherit}
   <div class="editbar" id="editBar" hidden><span>Đang sửa chuyến đi</span><button class="btn" id="tripInfo" type="button">Tên, ngày đi</button><button class="btn solid" id="editDone" type="button">Xong</button></div>
   </div>
 
-  <section class="panel" id="p-route" role="tabpanel" aria-labelledby="t-route">
+  <section class="panel" id="p-route" data-trip role="tabpanel" aria-labelledby="t-route">
     <div class="card" style="padding:12px 16px">
       <div class="card-h" style="align-items:center">
         <span class="muted" style="font-size:14px">Điểm tiếp theo: <b id="nextName" style="color:var(--ink)">…</b></span>
@@ -222,7 +266,7 @@ button{font:inherit;color:inherit}
     <div id="days"></div>
   </section>
 
-  <section class="panel" id="p-food" role="tabpanel" aria-labelledby="t-food" hidden>
+  <section class="panel" id="p-food" data-trip role="tabpanel" aria-labelledby="t-food" hidden>
     <div class="card dish">
       <div class="card-h"><h2>Món phải thử</h2><span class="pill" id="dishCount">0/0</span></div>
       <p class="muted" style="margin:6px 0 0;font-size:14px">Bấm vào món đã ăn để đánh dấu.</p>
@@ -239,17 +283,17 @@ button{font:inherit;color:inherit}
     <p class="muted" style="font-size:13px;margin:0">Giờ mở cửa có thể thay đổi, nên gọi trước khi tới. Bấm Sửa để thêm quán bạn tự tìm được.</p>
   </section>
 
-  <section class="panel" id="p-pack" role="tabpanel" aria-labelledby="t-pack" hidden>
+  <section class="panel" id="p-pack" data-trip role="tabpanel" aria-labelledby="t-pack" hidden>
     <div id="packs"></div>
   </section>
 
-  <section class="card data" style="margin-top:18px" aria-label="Dữ liệu của bạn">
+  <section class="card data" data-trip style="margin-top:18px" aria-label="Dữ liệu của bạn">
     <div class="card-h"><h2>Dữ liệu của bạn</h2><span class="status" id="saveStatus">Đang kiểm tra…</span></div>
     <ul>
-      <li>Mọi thứ bạn tick được lưu ngay trong trình duyệt của điện thoại, đóng trang hay tắt máy mở lại vẫn còn.</li>
+      <li>Mọi thứ bạn tick được lưu ngay trên máy, mất sóng vẫn dùng bình thường. Khi đã đăng nhập, thay đổi tự gửi lên tài khoản lúc có mạng.</li>
       <li>iPhone: mở bằng Safari, bấm Chia sẻ → <b>Thêm vào MH chính</b> để dùng như app và giữ dữ liệu lâu hơn.</li>
       <li>Mỗi chuyến đi lưu riêng: lịch trình, quán ăn, đồ cần mang và các dấu tick. Đổi chuyến ở ô chọn đầu trang.</li>
-      <li>Không dùng tab ẩn danh. Đổi máy mà chưa bật đồng bộ thì dùng mã sao lưu bên dưới.</li>
+      <li>Mã sao lưu dùng khi muốn chép một chuyến thành một bản riêng.</li>
     </ul>
     <div class="acts" style="margin-top:12px">
       <button class="btn solid" id="bkBtn" type="button">Sao lưu chuyến này</button>
@@ -267,23 +311,34 @@ button{font:inherit;color:inherit}
     </div>
 
     <div class="sync" id="syncBox">
-      <div class="card-h"><h3>Đồng bộ nhiều máy</h3><span class="status" id="syncStatus"><span class="dot"></span>Đang kiểm tra…</span></div>
-      <div id="syncOff" hidden><p class="muted" style="margin:0;font-size:14px" id="syncOffMsg">Chưa dán cấu hình Firebase vào trang, nên dữ liệu chỉ lưu trên máy này.</p></div>
-      <div id="syncLocal" hidden style="display:flex;flex-direction:column;gap:10px">
-        <p class="muted" style="margin:0;font-size:14px">Chuyến <span class="synctrip" data-synctrip></span> đang chỉ lưu trên máy này. Bật đồng bộ để có mã, gửi mã cho người đi cùng là cả hai dùng chung lịch trình và checklist.</p>
-        <div class="acts"><button class="btn solid" id="syncCreate" type="button">Bật đồng bộ cho chuyến này</button></div>
-      </div>
-      <div id="syncOn" hidden style="display:flex;flex-direction:column;gap:10px">
-        <p class="muted" style="margin:0;font-size:14px">Mã của chuyến <span class="synctrip" data-synctrip></span>, gửi cho người đi cùng:</p>
-        <div class="code" id="syncCodeShow">HG-…</div>
-        <div class="acts"><button class="btn pink" id="syncCopy" type="button">Sao chép mã</button><button class="btn ghost" id="syncLeave" type="button">Ngừng đồng bộ trên máy này</button></div>
-      </div>
-      <div id="syncJoin" hidden style="display:flex;flex-direction:column;gap:8px">
-        <p class="muted" style="margin:0;font-size:14px">Có mã từ người đi cùng? Nhập mã để mở chuyến đó trên máy này, chuyến sẽ được thêm vào danh sách.</p>
-        <form class="joinrow" id="syncJoinForm"><label for="syncCode" class="sr">Mã chuyến đi</label><input id="syncCode" type="text" placeholder="HG-XXXX-XXXX-XXXX-XXXX" autocomplete="off" autocapitalize="characters" spellcheck="false"><button class="btn pink" type="submit">Mở chuyến</button></form>
+      <div class="card-h"><h3>Người đi cùng</h3><span class="status" id="syncStatus"><span class="dot"></span>Đang kiểm tra…</span></div>
+      <div id="syncOff" hidden><p class="muted" style="margin:0;font-size:14px">Trang chưa có cấu hình Firebase nên đang ở chế độ dùng thử: dữ liệu chỉ lưu trên máy này, chưa đăng nhập và mời người đi cùng được.</p></div>
+      <div id="memBox" hidden style="display:flex;flex-direction:column;gap:10px">
+        <ul class="mems" id="memList"></ul>
+        <form class="joinrow" id="inviteForm"><label for="inviteU" class="sr">Tên đăng nhập của người được mời</label><input id="inviteU" type="text" placeholder="Tên đăng nhập người đi cùng" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="24"><button class="btn pink" type="submit">Mời</button></form>
+        <p class="muted small">Người được mời đăng nhập sẽ thấy lời mời ở đầu trang và bấm Nhận. Mọi người trong chuyến đều sửa và tick được.</p>
       </div>
     </div>
   </section>
+</div>
+<div class="gate" id="gate" hidden>
+  <div class="gate-in">
+    <div class="gate-logo"><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M8 50 26 22l9 14 6-8 15 22z" fill="#ffc531"/><circle cx="46" cy="18" r="6" fill="#e23d7e"/></svg></div>
+    <h1>Sổ tay <span>chuyến đi</span></h1>
+    <p class="sub">Lịch trình, quán ăn, đồ cần mang. Đăng nhập để lưu theo tài khoản và đi cùng bạn bè.</p>
+    <p class="gate-load" id="gateLoad"><span class="dot wait"></span>Đang kết nối…</p>
+    <form class="card gate-card" id="authForm" novalidate hidden>
+      <div class="seg" role="group" aria-label="Đăng nhập hoặc đăng ký"><button type="button" data-mode="in" aria-pressed="true">Đăng nhập</button><button type="button" data-mode="up" aria-pressed="false">Đăng ký</button></div>
+      <div class="fld"><label for="auU">Tên đăng nhập</label><input id="auU" type="text" autocomplete="username" autocapitalize="off" spellcheck="false" maxlength="24"><small data-up hidden>Chữ không dấu, số, dấu chấm, gạch ngang hoặc gạch dưới, 3–20 ký tự. Ví dụ: minh.nguyen</small></div>
+      <div class="fld" data-up hidden><label for="auN">Tên hiển thị</label><input id="auN" type="text" autocomplete="nickname" maxlength="40"><small>Người đi cùng sẽ thấy tên này, ví dụ: Minh</small></div>
+      <div class="fld"><label for="auP">Mật khẩu</label><input id="auP" type="password" autocomplete="current-password" maxlength="64"></div>
+      <div class="fld" data-up hidden><label for="auP2">Nhập lại mật khẩu</label><input id="auP2" type="password" autocomplete="new-password" maxlength="64"></div>
+      <label class="showpw"><input type="checkbox" id="auShow"> Hiện mật khẩu</label>
+      <p class="err" id="auErr" hidden></p>
+      <button class="btn solid wide" id="auGo" type="submit">Đăng nhập</button>
+      <p class="muted small" data-up hidden>Tài khoản không gắn email nên <b>quên mật khẩu sẽ không lấy lại được</b>. Hãy ghi mật khẩu vào chỗ an toàn.</p>
+    </form>
+  </div>
 </div>
 <div class="toast" id="toast" hidden role="status" aria-live="polite"></div>
 <div class="sheetbg" id="sheetBg" hidden></div>
@@ -295,6 +350,24 @@ button{font:inherit;color:inherit}
     <div class="sheet-f"><button class="btn danger" id="sheetDel" type="button">Xoá</button><span style="flex:1"></span><button class="btn ghost" id="sheetCancel" type="button">Huỷ</button><button class="btn solid" type="submit">Lưu</button></div>
   </form>
 </div>
+
+<script>
+/* =====================================================================
+   CẤU HÌNH FIREBASE
+   Dán firebaseConfig của bạn vào đây (Firebase Console → Project settings →
+   Your apps → Web app → SDK setup and configuration → Config).
+   Để trống apiKey thì trang chạy ở chế độ dùng thử: không đăng nhập, chỉ lưu trên máy.
+   ===================================================================== */
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyDo_est3pQoF3yykOe8tXC3KyIws6bE6w8",
+  authDomain: "first-project-by-me.firebaseapp.com",
+  projectId: "first-project-by-me",
+  storageBucket: "first-project-by-me.firebasestorage.app",
+  messagingSenderId: "856175855336",
+  appId: "1:856175855336:web:043a336a198dd7a253ab5d",
+  measurementId: "G-6XVV2CPGTB"
+};
+</script>
 
 <script>
 (function(){
@@ -394,15 +467,19 @@ const TEMPLATES={hagiang:{name:'Hà Giang 3N2Đ (từ Bắc Ninh)',make:()=>tplH
 /* =====================================================================
    STORAGE: many trips on this device
    ===================================================================== */
-const KEY='hgPlanner.v2',OLD='hgSoTay.v1';
+/* Có cấu hình Firebase → chế độ tài khoản (bắt buộc đăng nhập); không có → dùng thử, chỉ lưu trên máy */
+const ACC=typeof FIREBASE_CONFIG!=='undefined'&&!!(FIREBASE_CONFIG&&FIREBASE_CONFIG.apiKey);
+const LOCALKEY='hgPlanner.v2',OLD='hgSoTay.v1',KEY=ACC?'hgPlanner.v3':LOCALKEY;
+const genId=()=>{const A='abcdefghijkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789',r=new Uint32Array(20);crypto.getRandomValues(r);let s='';r.forEach(n=>s+=A[n%A.length]);return s;};
 let canStore=true;
 try{localStorage.setItem(KEY+'.t','1');canStore=localStorage.getItem(KEY+'.t')==='1';localStorage.removeItem(KEY+'.t');}catch(e){canStore=false;}
 const emptyProg=()=>({stops:{},food:{},dishes:{},pack:{}});
-let DB={trips:{},order:[],cur:null,ui:{tab:'route',filter:'all'},ts:0};
+let DB={trips:{},order:[],cur:null,ui:{tab:'route',filter:'all'},ts:0,user:null,invites:[]};
 function newTrip(plan,code){const lid=uid('t');DB.trips[lid]={lid,code:code||null,plan,prog:emptyProg(),q:[],ts:Date.now()};DB.order.push(lid);return lid;}
 function load(){
   if(!canStore)return;
-  try{const v=JSON.parse(localStorage.getItem(KEY)||'null');if(v&&v.trips){DB=Object.assign({trips:{},order:[],cur:null,ui:{tab:'route',filter:'all'}},v);}}catch(e){}
+  try{const v=JSON.parse(localStorage.getItem(KEY)||'null');if(v&&v.trips){DB=Object.assign({trips:{},order:[],cur:null,ui:{tab:'route',filter:'all'},user:null,invites:[]},v);}}catch(e){}
+  if(ACC){if(!DB.trips[DB.cur])DB.cur=DB.order[0]||null;return;}
   if(!DB.order.length){
     let old=null;try{old=JSON.parse(localStorage.getItem(OLD)||'null');}catch(e){}
     const plan=tplHaGiang(),lid=newTrip(plan,old&&old.trip||null),T=DB.trips[lid];
@@ -424,6 +501,11 @@ function status(){const el=$('saveStatus');if(!el)return;
 if(navigator.storage&&navigator.storage.persist){navigator.storage.persisted().then(p=>p||navigator.storage.persist()).then(p=>{persisted=!!p;status();}).catch(()=>{});}
 load();
 const T=()=>DB.trips[DB.cur],P=()=>T().plan,G=()=>T().prog;
+/* thêm chuyến mới (chế độ tài khoản: tạo luôn tài liệu trên Firebase) */
+function addTrip(plan,prog){const lid=newTrip(plan,ACC?genId():null);if(prog)DB.trips[lid].prog=Object.assign(emptyProg(),prog);
+  if(ACC&&DB.user){const u=DB.user;DB.trips[lid].meta={owner:u.uid,memberIds:[u.uid],members:{[u.uid]:{u:u.u,n:u.n}},invitedIds:[],invited:{}};}
+  DB.cur=lid;save();try{if(window.__hgSync)window.__hgSync.local(lid,'create');}catch(e){}return lid;}
+function dropTrip(lid){delete DB.trips[lid];DB.order=DB.order.filter(l=>l!==lid);if(DB.cur===lid)DB.cur=DB.order[0]||null;save();}
 
 
 /* =====================================================================
@@ -451,7 +533,8 @@ const fmtD=s=>/^\d{4}-\d{2}-\d{2}/.test(s||'')?s.slice(8,10)+'/'+s.slice(5,7):''
 
 function renderHeader(){
   const p=P();
-  $('tripSel').innerHTML=DB.order.map(l=>`<option value="${l}"${l===DB.cur?' selected':''}>${esc(DB.trips[l].plan.name||'Chuyến đi')}${DB.trips[l].code?' · đồng bộ':''}</option>`).join('');
+  $('tripSel').innerHTML=DB.order.map(l=>{const t=DB.trips[l],n=t.meta&&t.meta.memberIds?t.meta.memberIds.length:0;
+    return `<option value="${l}"${l===DB.cur?' selected':''}>${esc(t.plan.name||'Chuyến đi')}${ACC?(n>1?` · ${n} người`:''):(t.code?' · đồng bộ':'')}</option>`;}).join('');
   const words=String(p.name||'Chuyến đi').trim().split(/\s+/),last=words.length>1?words.pop():'';
   $('heroTitle').innerHTML=esc(words.join(' '))+(last?` <span>${esc(last)}</span>`:'');
   const yr=/^\d{4}/.test(p.end||p.start||'')?(p.end||p.start).slice(0,4):'';
@@ -536,14 +619,17 @@ function stats(){
   p.packs.forEach(c=>{const el=document.querySelector(`[data-catpill="${c.id}"]`);if(!el)return;const n=c.items.filter(i=>g.pack[i.id]).length;el.textContent=`${n}/${c.items.length}`;el.classList.toggle('done',!!c.items.length&&n===c.items.length);});
   $('dishCount').textContent=`${p.dishes.filter(d=>g.dishes[d.id]).length}/${p.dishes.length}`;
 }
-function tick(){const p=P(),now=Date.now(),el=$('cdText'),s=parseLocal(p.start),e=parseLocal(p.end);
+function tick(){if(!T())return;const p=P(),now=Date.now(),el=$('cdText'),s=parseLocal(p.start),e=parseLocal(p.end);
   if(isNaN(s)){el.textContent='Chưa đặt giờ khởi hành';return;}
   if(now<s){let m=Math.floor((s-now)/60000);const d=Math.floor(m/1440);m-=d*1440;const h=Math.floor(m/60);m-=h*60;el.textContent=d>0?`Còn ${d} ngày ${h} giờ là lên đường`:`Còn ${h} giờ ${m} phút là lên đường`;}
   else if(isNaN(e)||now<e)el.textContent='Đang trên hành trình, đi vui nhé!';
   else el.textContent='Chuyến đi đã khép lại';}
 const TABS=['route','food','pack'];
 function setTab(t,focus){DB.ui.tab=t;TABS.forEach(k=>{const on=k===t;$('t-'+k).setAttribute('aria-selected',on?'true':'false');$('t-'+k).tabIndex=on?0:-1;$('p-'+k).hidden=!on;});if(focus)$('t-'+t).focus();}
-function renderAll(){renderHeader();renderRoute();renderFood();renderDishes();renderPack();stats();setTab(DB.ui.tab||'route');tick();status();if(window.__hgSyncView)window.__hgSyncView();}
+function renderEmpty(){const none=!T();document.querySelectorAll('[data-trip]').forEach(el=>{el.hidden=none;});$('emptyApp').hidden=!none;
+  if(none){$('tripSel').innerHTML='<option>Chưa có chuyến</option>';$('tripSel').disabled=true;$('editBtn').hidden=true;$('editBar').hidden=true;document.title='Sổ tay chuyến đi';}
+  else{$('tripSel').disabled=false;$('editBtn').hidden=false;}return none;}
+function renderAll(){if(ACC)$('gate').hidden=!!DB.user;if(window.__hgAccView)window.__hgAccView();if(renderEmpty()){EDIT=false;if(window.__hgSyncView)window.__hgSyncView();return;}renderHeader();renderRoute();renderFood();renderDishes();renderPack();stats();setTab(DB.ui.tab||'route');tick();status();if(window.__hgSyncView)window.__hgSyncView();}
 
 
 /* =====================================================================
@@ -557,20 +643,22 @@ function openSheet(o){
     const lab=`<label for="${id}">${esc(f.label)}${f.req?' *':''}</label>`,hint=f.hint?`<small>${esc(f.hint)}</small>`:'';
     if(f.type==='textarea')return `<div class="fld">${lab}<textarea id="${id}" data-k="${f.k}" rows="${f.rows||3}">${esc(v)}</textarea>${hint}</div>`;
     if(f.type==='select')return `<div class="fld">${lab}<select id="${id}" data-k="${f.k}">${f.options.map(([ov,ol])=>`<option value="${esc(ov)}"${String(ov)===String(v)?' selected':''}>${esc(ol)}</option>`).join('')}</select>${hint}</div>`;
-    return `<div class="fld">${lab}<input id="${id}" data-k="${f.k}" type="${f.type==='datetime'?'datetime-local':'text'}" value="${esc(v)}" maxlength="${f.max||160}" autocomplete="off">${hint}</div>`;}).join('');
+    const ty=f.type==='datetime'?'datetime-local':f.type==='password'?'password':'text',ac=f.ac||(f.type==='password'?'current-password':'off');
+    return `<div class="fld">${lab}<input id="${id}" data-k="${f.k}" type="${ty}" value="${esc(v)}" maxlength="${f.max||160}" autocomplete="${ac}" autocapitalize="off" spellcheck="false">${hint}</div>`;}).join('');
   $('sheetDel').hidden=!o.onDelete;$('sheetDel').textContent=o.delLabel||'Xoá';
   $('sheet').hidden=false;$('sheetBg').hidden=false;document.documentElement.style.overflow='hidden';
   const first=$('sheetFields').querySelector('input,textarea,select');if(first)setTimeout(()=>first.focus(),30);
 }
 function closeSheet(){SH=null;$('sheet').hidden=true;$('sheetBg').hidden=true;document.documentElement.style.overflow='';if(pendingRender){pendingRender=false;renderAll();}}
 $('sheetForm').addEventListener('submit',e=>{e.preventDefault();if(!SH)return;
-  const vals={};$('sheetFields').querySelectorAll('[data-k]').forEach(el=>{vals[el.dataset.k]=el.value.trim();});
+  const vals={};$('sheetFields').querySelectorAll('[data-k]').forEach(el=>{vals[el.dataset.k]=el.type==='password'?el.value:el.value.trim();});
   const miss=SH.fields.find(f=>f.req&&!vals[f.k]);
-  if(miss){$('sheetErr').textContent=`Cần điền “${miss.label}”.`;$('sheetErr').hidden=false;return;}
-  const fn=SH.onSave;closeSheet();fn(vals);});
+  if(miss){sheetErr(`Cần điền “${miss.label}”.`);return;}
+  const fn=SH.onSave;if(SH.async){const r=fn(vals);if(r&&r.then)r.then(ok=>{if(ok!==false)closeSheet();});return;}closeSheet();fn(vals);});
+function sheetErr(m){$('sheetErr').textContent=m;$('sheetErr').hidden=!m;}
 $('sheetCancel').addEventListener('click',closeSheet);
 $('sheetBg').addEventListener('click',closeSheet);
-$('sheetDel').addEventListener('click',()=>{if(!SH)return;if(!SH.armed){SH.armed=true;$('sheetDel').textContent='Bấm lần nữa để xoá';return;}const fn=SH.onDelete;closeSheet();fn();});
+$('sheetDel').addEventListener('click',()=>{if(!SH)return;if(!SH.armed){SH.armed=true;$('sheetDel').textContent=SH.armText||'Bấm lần nữa để xoá';return;}const fn=SH.onDelete;closeSheet();fn();});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&SH)closeSheet();});
 
 /* =====================================================================
@@ -584,15 +672,18 @@ const areaOpts=()=>[['','Không gắn']].concat(P().areas.map(a=>[a.id,a.name]))
 const dropProg=(map,ids)=>{const g=G();ids.forEach(id=>{if(g[map][id]){delete g[map][id];hook('set',map,id,false);}});};
 function findItem(dayId,itemId){const d=P().days.find(x=>x.id===dayId);return [d,d?d.items.find(x=>x.id===itemId):null];}
 
-function editTrip(){const p=P(),many=DB.order.length>1;
+function editTrip(){const p=P(),many=DB.order.length>1,t=T(),mine=!ACC||!t.meta||!DB.user||t.meta.owner===DB.user.uid;
+  let delLabel=null,armText=null,onDelete=null;
+  if(ACC){delLabel=mine?'Xoá chuyến cho mọi người':'Rời chuyến này';armText=mine?'Bấm lần nữa: xoá hẳn chuyến':'Bấm lần nữa để rời chuyến';
+    onDelete=()=>{const lid=DB.cur,code=t.code,name=p.name;hook(mine?'delete':'leave',code);dropTrip(lid);EDIT=false;renderAll();switched();toast(mine?`Đã xoá chuyến “${name}”`:`Đã rời chuyến “${name}”`);};}
+  else if(many){delLabel='Xoá chuyến khỏi máy này';onDelete=()=>{const lid=DB.cur,was=t.code;dropTrip(lid);renderAll();switched();toast(was?'Đã xoá khỏi máy này, máy khác vẫn còn chuyến':'Đã xoá chuyến đi');};}
   openSheet({title:'Thông tin chuyến đi',fields:[
     {k:'name',label:'Tên chuyến đi',req:true,value:p.name,max:60},
     {k:'sub',label:'Mô tả ngắn',type:'textarea',value:p.sub,rows:2},
     {k:'start',label:'Giờ khởi hành',type:'datetime',value:p.start,hint:'Dùng cho đồng hồ đếm ngược (giờ Việt Nam).'},
     {k:'end',label:'Giờ về tới nhà',type:'datetime',value:p.end}],
    onSave:v=>{Object.assign(p,{name:v.name,sub:v.sub,start:v.start,end:v.end});planChanged('Đã lưu thông tin chuyến đi');},
-   delLabel:many?'Xoá chuyến khỏi máy này':null,
-   onDelete:many?()=>{const lid=DB.cur,was=T().code;delete DB.trips[lid];DB.order=DB.order.filter(l=>l!==lid);DB.cur=DB.order[0];save();renderAll();switched();toast(was?'Đã xoá khỏi máy này, máy khác vẫn còn chuyến':'Đã xoá chuyến đi');}:null});}
+   delLabel,armText,onDelete});}
 function editDay(id){const p=P(),isNew=!id,d=isNew?{id:uid('d'),label:'Ngày '+(p.days.length+1),date:'',route:'',km:'',items:[]}:p.days.find(x=>x.id===id);if(!d)return;
   openSheet({title:isNew?'Thêm ngày':'Sửa ngày',fields:[
     {k:'label',label:'Tên ngày',req:true,value:d.label,hint:'Ví dụ: Ngày 1, Đêm 0'},{k:'date',label:'Thứ, ngày',value:d.date,hint:'Ví dụ: Chủ nhật · 22/11'},
@@ -655,7 +746,7 @@ function newTripSheet(){
     {k:'tpl',label:'Bắt đầu từ',type:'select',value:'blank',options:Object.entries(TEMPLATES).map(([k,v])=>[k,v.name])},
     {k:'start',label:'Giờ khởi hành',type:'datetime',value:''}],
    onSave:v=>{const plan=TEMPLATES[v.tpl].make(v.name,v.start);plan.name=v.name;if(v.start)plan.start=v.start;
-     const lid=newTrip(plan,null);DB.cur=lid;EDIT=v.tpl==='blank';save();renderAll();switched();toast(EDIT?'Đã tạo chuyến mới, thêm ngày và điểm đến nhé':'Đã tạo chuyến mới từ mẫu');}});}
+     addTrip(plan);EDIT=v.tpl==='blank';renderAll();switched();toast(EDIT?'Đã tạo chuyến mới, thêm ngày và điểm đến nhé':'Đã tạo chuyến mới từ mẫu');}});}
 
 /* =====================================================================
    EVENTS
@@ -673,6 +764,8 @@ document.addEventListener('change',e=>{const t=e.target;
   if(kind==='s')markNext();
   if(kind==='f'&&(DB.ui.filter==='done'||DB.ui.filter==='todo'))renderFood();});
 document.addEventListener('click',e=>{
+  const nt=e.target.closest('[data-newtpl]');
+  if(nt){if(nt.dataset.newtpl==='hagiang'){addTrip(tplHaGiang());EDIT=false;renderAll();switched();toast('Đã tạo chuyến Hà Giang từ mẫu');}else newTripSheet();return;}
   const ed=e.target.closest('[data-ed]');
   if(ed){const k=ed.dataset.ed,ids=ed.dataset.ids||'';const [a,b]=ids.split('|');
     ({day:()=>editDay(a),item:()=>editItem(a,b),area:()=>editArea(a),place:()=>editPlace(a),dish:()=>editDish(a),cat:()=>editCat(a),pitem:()=>editPItem(a,b)})[k]();return;}
@@ -715,9 +808,9 @@ $('bkAct').addEventListener('click',()=>{
     if(v==='HG2:'){plan=o.plan;prog=Object.assign(emptyProg(),o.prog);}
     else{plan=tplHaGiang();['stops','food','pack'].forEach(m=>prog[m]=Object.assign({},o[m]));Object.keys(o.dishes||{}).forEach(k=>prog.dishes['ds'+k]=true);Object.entries(o.custom||{}).forEach(([cat,l])=>{const c=plan.packs.find(x=>x.id===cat);if(c)(l||[]).forEach(it=>c.items.push({id:it.id,t:it.t}));});}
     if(!plan||!plan.days)throw new Error('fmt');
-    const lid=newTrip(plan,null);DB.trips[lid].prog=prog;DB.cur=lid;save();renderAll();switched();$('bkBox').hidden=true;toast('Đã khôi phục thành một chuyến mới');}
+    addTrip(plan,prog);renderAll();switched();$('bkBox').hidden=true;toast('Đã khôi phục thành một chuyến mới');}
   catch(err){toast('Mã không đúng, mã phải bắt đầu bằng HG2: hoặc HG1:');}});
-$('clrBtn').addEventListener('click',()=>{$('clrMsg').textContent=T().code?'Bỏ tick toàn bộ chuyến này trên tất cả các máy đang đồng bộ?':'Bỏ tick toàn bộ chuyến này trên máy này?';$('clrBox').hidden=false;$('bkBox').hidden=true;});
+$('clrBtn').addEventListener('click',()=>{$('clrMsg').textContent=ACC?'Bỏ tick toàn bộ chuyến này cho mọi người trong chuyến?':T().code?'Bỏ tick toàn bộ chuyến này trên tất cả các máy đang đồng bộ?':'Bỏ tick toàn bộ chuyến này trên máy này?';$('clrBox').hidden=false;$('bkBox').hidden=true;});
 $('clrNo').addEventListener('click',()=>{$('clrBox').hidden=true;});
 $('clrYes').addEventListener('click',()=>{T().prog=emptyProg();save();renderAll();hook('reset');$('clrBox').hidden=true;toast('Đã bỏ tick cả chuyến');});
 
@@ -738,8 +831,21 @@ function switched(){if(window.__hgSync&&window.__hgSync.switched)window.__hgSync
 const normDishes=m=>{const o={};Object.keys(m||{}).forEach(k=>{if(m[k])o[/^\d+$/.test(k)?'ds'+k:k]=true;});return o;};
 function planFromV1(data,base){const plan=base?clone(base):tplHaGiang();Object.entries(data.custom||{}).forEach(([id,v])=>{const c=v&&plan.packs.find(x=>x.id===v.cat);if(c&&!c.items.some(i=>i.id===id))c.items.push({id,t:String(v.t||'')});});return plan;}
 function progFrom(data){return {stops:Object.assign({},data.stops),food:Object.assign({},data.food),dishes:normDishes(data.dishes),pack:Object.assign({},data.pack)};}
+function metaFrom(d){return {owner:d.owner||null,memberIds:Array.isArray(d.memberIds)?d.memberIds.slice():[],members:Object.assign({},d.members),invitedIds:Array.isArray(d.invitedIds)?d.invitedIds.slice():[],invited:Object.assign({},d.invited)};}
+const EMPTYDB=()=>({trips:{},order:[],cur:null,ui:{tab:'route',filter:'all'},ts:0,user:null,invites:[],gq:[]});
+function legacyTrips(){try{const v=JSON.parse(localStorage.getItem(LOCALKEY)||'null');if(!v||!v.trips)return [];const tpl=JSON.stringify(tplHaGiang());
+  return (v.order||Object.keys(v.trips)).map(l=>v.trips[l]).filter(t=>t&&t.plan&&t.plan.days&&(JSON.stringify(t.plan)!==tpl||Object.values(t.prog||{}).some(m=>m&&Object.keys(m).length)));}catch(e){return [];}}
 window.__hg={
-  cur:()=>T(), trip:lid=>DB.trips[lid], toast, save,
+  cur:()=>T(), trip:lid=>DB.trips[lid], db:()=>DB, toast, save, renderAll, openSheet, sheetErr, closeSheet, esc, typing:()=>typing(),
+  hdr(){if(T())renderHeader();},
+  setUser(u){if(DB.user&&DB.user.uid!==u.uid){const ui=DB.ui;DB=EMPTYDB();DB.ui=ui;}DB.user=u;save();},
+  clearAll(){DB=EMPTYDB();try{localStorage.removeItem(KEY);}catch(e){}},
+  gqueue(op){(DB.gq=DB.gq||[]).push(op);save();}, takeGQueue(){const q=DB.gq||[];DB.gq=[];save();return q;},
+  addRemote(code,data){if(!data.plan)return null;const lid=newTrip(clone(data.plan),code),t=DB.trips[lid];t.prog=progFrom(data);t.meta=metaFrom(data);if(!DB.cur)DB.cur=lid;save();return lid;},
+  dropMissing(codes){const gone=[];DB.order.slice().forEach(l=>{const t=DB.trips[l];if(!t.code||codes.has(t.code)||(t.q||[]).some(o=>o[0]==='create'))return;gone.push(t.plan.name);dropTrip(l);});return gone;},
+  setInvites(list){DB.invites=list;save();},
+  legacyTrips, moveLegacy(){const l=legacyTrips();l.forEach(t=>addTrip(clone(t.plan),t.prog));try{localStorage.setItem(LOCALKEY+'.moved','1');}catch(e){}if(l.length)DB.cur=DB.order[DB.order.length-l.length];save();return l.length;},
+  legacyDone(){try{return localStorage.getItem(LOCALKEY+'.moved')==='1';}catch(e){return true;}}, skipLegacy(){try{localStorage.setItem(LOCALKEY+'.moved','1');}catch(e){}},
   link(lid,code){DB.trips[lid].code=code;save();renderHeader();},
   unlink(lid){DB.trips[lid].code=null;save();renderHeader();},
   queue(lid,op){const t=DB.trips[lid];if(!t)return;(t.q=t.q||[]).push(op);if(t.q.length>500)t.q=t.q.slice(-500);save();},
@@ -752,6 +858,7 @@ window.__hg={
   applyRemote(lid,data){const t=DB.trips[lid];if(!t)return;
     const planChangedRemote=!!data.plan&&JSON.stringify(data.plan)!==JSON.stringify(t.plan);
     if(planChangedRemote)t.plan=clone(data.plan);
+    if(ACC)t.meta=metaFrom(data);
     t.prog=progFrom(data);save();
     if(lid!==DB.cur)return;
     if(planChangedRemote){if(typing())pendingRender=true;else renderAll();}
@@ -764,174 +871,342 @@ addEventListener('pageshow',e=>{if(e.persisted){load();renderAll();}});
 
 <script type="module">
 /* =====================================================================
-   ĐỒNG BỘ NHIỀU MÁY BẰNG FIREBASE (mỗi chuyến đi là một tài liệu trips/<mã>)
-   Dán firebaseConfig của bạn vào FIREBASE_CONFIG bên dưới
-   (Firebase Console → Project settings → Your apps → Web app → SDK setup and configuration → Config).
-   Để trống apiKey thì trang chỉ lưu trên máy, không đồng bộ.
+   TÀI KHOẢN + ĐỒNG BỘ BẰNG FIREBASE
+   Cấu hình Firebase nằm ở FIREBASE_CONFIG (đoạn <script> ngay trước phần chương trình).
+   Tên đăng nhập được đổi thành email nội bộ <tên>@<projectId>.firebaseapp.com để dùng
+   kiểu đăng nhập Email/Password của Firebase; trang không gửi email nào.
    ===================================================================== */
-const FIREBASE_CONFIG = {
-    apiKey: "AIzaSyDo_est3pQoF3yykOe8tXC3KyIws6bE6w8",
-    authDomain: "first-project-by-me.firebaseapp.com",
-    projectId: "first-project-by-me",
-    storageBucket: "first-project-by-me.firebasestorage.app",
-    messagingSenderId: "856175855336",
-    appId: "1:856175855336:web:043a336a198dd7a253ab5d",
-    measurementId: "G-6XVV2CPGTB"
-};
 const SDK = "https://www.gstatic.com/firebasejs/13.2.0/";
-
 const hg = window.__hg, $ = id => document.getElementById(id);
-const ENABLED = !!FIREBASE_CONFIG.apiKey;
-let FB = null, db = null, ready = false, ref = null, unsub = null, curLid = null, last = {text:'Đang kiểm tra…', kind:''};
+const CFG = (typeof FIREBASE_CONFIG !== 'undefined' && FIREBASE_CONFIG) || {};
+const ACC = !!CFG.apiKey;
+const DOMAIN = (CFG.projectId || 'so-tay') + '.firebaseapp.com';
+let FB = null, AU = null, auth = null, db = null, ready = false, me = null;
+let unsubT = null, unsubI = null, last = {text:'Đang kiểm tra…', kind:''}, mode = 'in', pendingName = null, wantSwitch = null, forceOut = false;
 
+/* ---------- tiện ích ---------- */
 const hhmm = () => new Date().toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit'});
+const esc = hg.esc;
+const normU = v => String(v || '').trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/đ/g, 'd').replace(/\s+/g, '');
+const validU = u => /^[a-z0-9][a-z0-9._-]{1,18}[a-z0-9]$/.test(u);
+const emailOf = u => u + '@' + DOMAIN;
+const userOf = x => { const u = (x.email || '').split('@')[0]; return {uid:x.uid, u, n:x.displayName || u}; };
+const initial = n => (String(n || '?').trim()[0] || '?');
 const ERR = {
-  'permission-denied':'Firebase từ chối quyền: kiểm tra lại Rules và đăng nhập ẩn danh.',
-  'not-found':'Chuyến này không còn trên Firebase.',
+  'permission-denied':'Firebase từ chối quyền: kiểm tra lại Rules đã Publish bản mới chưa.',
   'unavailable':'Đang mất mạng, sẽ thử lại khi có sóng.',
-  'auth/operation-not-allowed':'Chưa bật đăng nhập Anonymous trong Firebase.',
-  'auth/network-request-failed':'Không kết nối được, kiểm tra mạng.',
-  'auth/api-key-not-valid.-please-pass-a-valid-api-key.':'apiKey không đúng, kiểm tra lại firebaseConfig.'
+  'auth/operation-not-allowed':'Chưa bật kiểu đăng nhập Email/Password trong Firebase Authentication.',
+  'auth/network-request-failed':'Không kết nối được, kiểm tra mạng rồi thử lại.',
+  'auth/too-many-requests':'Thử sai nhiều lần quá, đợi vài phút rồi thử lại.',
+  'auth/email-already-in-use':'Tên đăng nhập này đã có người dùng, chọn tên khác.',
+  'auth/weak-password':'Mật khẩu cần ít nhất 6 ký tự.',
+  'auth/invalid-credential':'Sai tên đăng nhập hoặc mật khẩu.',
+  'auth/wrong-password':'Sai tên đăng nhập hoặc mật khẩu.',
+  'auth/user-not-found':'Sai tên đăng nhập hoặc mật khẩu.',
+  'auth/invalid-email':'Tên đăng nhập không hợp lệ.',
+  'auth/user-disabled':'Tài khoản này đã bị khoá.',
+  'auth/requires-recent-login':'Cần nhập đúng mật khẩu hiện tại.',
+  'auth/api-key-not-valid.-please-pass-a-valid-api-key.':'apiKey không đúng, kiểm tra lại FIREBASE_CONFIG.'
 };
-const errText = e => ERR[e && e.code] || ('Lỗi đồng bộ: ' + ((e && (e.code || e.message)) || 'không rõ'));
-
-function setStatus(text, kind){
-  last = {text, kind: kind || ''};
-  const el = $('syncStatus'); el.innerHTML = `<span class="dot ${last.kind}"></span>`; el.append(text);
-  el.classList.toggle('bad', kind === 'bad');
-  const chip = $('syncChip'), linked = ENABLED && !!hg.cur().code;
-  chip.hidden = !linked;
-  if (linked){ $('syncChipDot').className = 'dot ' + last.kind; $('syncChipText').textContent = kind === 'ok' ? 'Đã đồng bộ' : kind === 'wait' ? 'Chờ mạng' : kind === 'bad' ? 'Lỗi đồng bộ' : 'Đồng bộ'; }
-}
-function view(){
-  const t = hg.cur();
-  $('syncOff').hidden = ENABLED;
-  $('syncLocal').hidden = !ENABLED || !!t.code;
-  $('syncOn').hidden = !ENABLED || !t.code;
-  $('syncJoin').hidden = !ENABLED;
-  $('syncCodeShow').textContent = t.code || '';
-  document.querySelectorAll('[data-synctrip]').forEach(el => { el.textContent = '“' + (t.plan.name || 'Chuyến đi') + '”'; });
-  setStatus(last.text, last.kind);
-}
-window.__hgSyncView = view;
-
-function genCode(){
-  const A = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789', r = new Uint32Array(16); crypto.getRandomValues(r);
-  let s = ''; r.forEach((n, i) => { s += A[n % A.length]; if (i % 4 === 3 && i < 15) s += '-'; });
-  return 'HG-' + s;
-}
-function normCode(v){ v = String(v || '').toUpperCase().replace(/[^A-Z0-9-]/g, ''); if (!v.startsWith('HG-')) v = 'HG-' + v.replace(/^HG/, ''); return v; }
-/* The plan is stored as a JSON string: Firestore cannot hold arrays inside arrays (the notes list), and one string field is cheap to compare. */
+const errText = e => ERR[e && e.code] || ('Lỗi: ' + ((e && (e.code || e.message)) || 'không rõ'));
 function fromRemote(d){
   const o = {...d};
   if (typeof o.plan === 'string'){ try{ o.plan = JSON.parse(o.plan); }catch(e){ delete o.plan; } }
   if (o.plan && !Array.isArray(o.plan.days)) delete o.plan;
   return o;
 }
-function toRemote(lid){ const r = hg.toRemote(lid); r.plan = JSON.stringify(r.plan); r.v = 2; return r; }
 
-/* one local change → one small Firestore update (each tick is its own field, so two phones never overwrite each other) */
+/* ---------- trạng thái + giao diện ---------- */
+function setStatus(text, kind){
+  last = {text, kind: kind || ''};
+  const el = $('syncStatus'); el.innerHTML = `<span class="dot ${last.kind}"></span>`; el.append(text);
+  el.classList.toggle('bad', kind === 'bad');
+  const chip = $('syncChip'), on = ACC && !!me && !!hg.cur();
+  chip.hidden = !on;
+  if (on){ const t = hg.cur(), n = t.meta ? t.meta.memberIds.length : 1;
+    $('syncChipDot').className = 'dot ' + last.kind;
+    $('syncChipText').textContent = (n > 1 ? n + ' người đi cùng' : 'Mời người đi cùng') + ' · ' + (kind === 'ok' ? 'đã đồng bộ' : kind === 'wait' ? 'chờ mạng' : kind === 'bad' ? 'lỗi' : 'đồng bộ'); }
+}
+function accView(){
+  const DB = hg.db(), user = DB.user;
+  $('gate').hidden = !ACC || !!user;
+  $('accBtn').hidden = !ACC || !user;
+  if (user) $('accAv').textContent = initial(user.n);
+  /* lời mời */
+  const inv = (ACC && user && DB.invites) || [];
+  $('invites').hidden = !inv.length;
+  $('invites').innerHTML = inv.map(i => `<div class="inv"><div><b>${esc(i.from)}</b> mời bạn vào chuyến <b>“${esc(i.name)}”</b></div><div class="acts"><button class="btn solid" type="button" data-inv-ok="${esc(i.id)}">Nhận</button><button class="btn ghost" type="button" data-inv-no="${esc(i.id)}">Từ chối</button></div></div>`).join('');
+  /* chuyến từ bản cũ trên máy */
+  const lg = ACC && user && ready && !hg.legacyDone() ? hg.legacyTrips() : [];
+  $('legacy').hidden = !lg.length;
+  $('legacy').innerHTML = lg.length ? `<div class="inv"><div>Máy này còn <b>${lg.length} chuyến</b> từ bản trước (chỉ lưu trên máy): ${lg.map(t => '“' + esc(t.plan.name) + '”').join(', ')}.</div><div class="acts"><button class="btn solid" type="button" id="lgMove">Đưa vào tài khoản</button><button class="btn ghost" type="button" id="lgSkip">Bỏ qua</button></div></div>` : '';
+}
+function syncView(){
+  const t = hg.cur(), DB = hg.db();
+  $('syncOff').hidden = ACC;
+  $('memBox').hidden = !ACC || !t || !DB.user;
+  if (ACC && t && DB.user && t.meta){
+    const m = t.meta, owner = m.owner, mine = owner === DB.user.uid;
+    const rows = m.memberIds.map(uid => { const x = m.members[uid] || {}, you = uid === DB.user.uid;
+      const tag = [uid === owner ? 'Chủ chuyến' : 'Thành viên', you ? 'Bạn' : ''].filter(Boolean).join(' · ');
+      const kick = mine && !you ? `<button class="btn ghost" type="button" data-kick="${esc(uid)}">Mời ra</button>` : '';
+      return `<li><span class="av">${esc(initial(x.n || x.u))}</span><div class="who"><b>${esc(x.n || x.u || 'Thành viên')}</b><small>@${esc(x.u || '')} · ${tag}</small></div>${kick}</li>`; });
+    const pend = m.invitedIds.map(uid => { const x = m.invited[uid] || {};
+      return `<li class="pending"><span class="av">${esc(initial(x.n || x.u))}</span><div class="who"><b>${esc(x.n || x.u || 'Người được mời')}</b><small>@${esc(x.u || '')} · Đang chờ nhận lời</small></div><button class="btn ghost" type="button" data-uninv="${esc(uid)}">Huỷ mời</button></li>`; });
+    $('memList').innerHTML = rows.concat(pend).join('');
+  }
+  setStatus(last.text, last.kind);
+}
+window.__hgAccView = accView;
+$('syncChip').addEventListener('click', () => { $('syncBox').scrollIntoView({behavior:'smooth', block:'start'}); setTimeout(() => { if (!$('memBox').hidden) $('inviteU').focus({preventScroll:true}); }, 500); });
+window.__hgSyncView = syncView;
+
+/* ---------- ghi lên Firestore ---------- */
+const tripRef = code => FB.doc(db, 'trips', code);
+const TS = () => ['updatedAt', FB.serverTimestamp()];
 function apply(lid, op){
-  const {updateDoc, FieldPath, deleteField, serverTimestamp} = FB, ts = ['updatedAt', serverTimestamp()];
-  if (op[0] === 'set')   return updateDoc(ref, new FieldPath(op[1], String(op[2])), op[3] ? true : deleteField(), ...ts);
-  if (op[0] === 'plan'){ const t = hg.trip(lid); return updateDoc(ref, {plan: JSON.stringify(t.plan), name: t.plan.name, v: 2, updatedAt: serverTimestamp()}); }
+  const {updateDoc, setDoc, deleteDoc, FieldPath, deleteField, serverTimestamp, arrayRemove} = FB;
+  if (op[0] === 'delete') return deleteDoc(tripRef(op[1]));
+  if (op[0] === 'leave')  return updateDoc(tripRef(op[1]), 'memberIds', arrayRemove(me.uid), new FieldPath('members', me.uid), deleteField(), ...TS());
+  const t = hg.trip(lid); if (!t || !t.code) return;
+  const ref = tripRef(t.code);
+  if (op[0] === 'create'){
+    const r = hg.toRemote(lid);
+    return setDoc(ref, {...r, plan: JSON.stringify(r.plan), v: 2, owner: me.uid, memberIds: [me.uid], members: {[me.uid]: {u: me.u, n: me.n}},
+      invitedIds: [], invited: {}, createdAt: serverTimestamp(), updatedAt: serverTimestamp()});
+  }
+  if (op[0] === 'set')   return updateDoc(ref, new FieldPath(op[1], String(op[2])), op[3] ? true : deleteField(), ...TS());
+  if (op[0] === 'plan')  return updateDoc(ref, {plan: JSON.stringify(t.plan), name: t.plan.name, v: 2, updatedAt: serverTimestamp()});
   if (op[0] === 'reset') return updateDoc(ref, {stops:{}, food:{}, dishes:{}, pack:{}, updatedAt: serverTimestamp()});
 }
-const run = (lid, op) => { const p = apply(lid, op); if (p) p.catch(e => setStatus(errText(e), 'bad')); };
-
+function run(lid, op){
+  let p; try{ p = apply(lid, op); }catch(e){ setStatus(errText(e), 'bad'); return; }
+  if (p) p.catch(e => { if (e && e.code === 'not-found') return; setStatus(errText(e), 'bad'); });
+}
 window.__hgSync = {
   local(lid, ...op){
-    const t = hg.trip(lid);
-    if (!ENABLED || !t || !t.code) return;
-    if (!ready || lid !== curLid || !ref){ hg.queue(lid, op); setStatus('Chưa kết nối, sẽ gửi khi có mạng', 'wait'); return; }
+    if (!ACC) return;
+    if (op[0] === 'delete' || op[0] === 'leave'){ if (!ready || !me){ hg.gqueue(op); return; } run(null, op); return; }
+    const t = hg.trip(lid); if (!t || !t.code) return;
+    if (!ready || !me){ hg.queue(lid, op); setStatus('Chưa kết nối, sẽ gửi khi có mạng', 'wait'); return; }
     run(lid, op);
   },
-  switched(){ attachCurrent(); }
+  switched(){ syncView(); }
 };
+function flush(){
+  for (const op of hg.takeGQueue()) run(null, op);
+  for (const lid of hg.db().order.slice()) for (const op of hg.takeQueue(lid)) run(lid, op);
+}
 
-function detach(){ if (unsub) unsub(); unsub = null; ref = null; curLid = null; }
-function listen(lid){
-  unsub = FB.onSnapshot(ref, {includeMetadataChanges:true}, async snap => {
-    if (lid !== curLid) return;
-    if (!snap.exists()){ setStatus('Không tìm thấy chuyến này trên Firebase', 'bad'); return; }
-    const raw = snap.data();
-    if (!raw.plan){
-      /* tài liệu tạo từ bản cũ (chỉ có tick): nâng cấp, gộp đồ tự thêm vào lịch trình */
-      const t = hg.trip(lid), plan = hg.planFromV1(raw, t.plan);
-      try{ await FB.updateDoc(ref, {plan: JSON.stringify(plan), name: plan.name, v: 2, dishes: hg.normDishes(raw.dishes), custom: FB.deleteField(), updatedAt: FB.serverTimestamp()}); }
-      catch(e){ setStatus(errText(e), 'bad'); }
-      return;
+/* ---------- nghe thay đổi ---------- */
+function stopListeners(){ if (unsubT) unsubT(); if (unsubI) unsubI(); unsubT = unsubI = null; }
+function startListeners(){
+  stopListeners();
+  const col = FB.collection(db, 'trips');
+  unsubT = FB.onSnapshot(FB.query(col, FB.where('memberIds', 'array-contains', me.uid)), {includeMetadataChanges: true}, snap => {
+    const codes = new Set(); let structural = false, switchLid = null;
+    snap.forEach(d => {
+      codes.add(d.id);
+      const data = fromRemote(d.data()), lid = hg.findByCode(d.id);
+      if (lid) hg.applyRemote(lid, data);
+      else { const nl = hg.addRemote(d.id, data); if (nl){ structural = true; if (wantSwitch === d.id){ switchLid = nl; wantSwitch = null; } } }
+    });
+    if (!snap.metadata.fromCache){
+      const gone = hg.dropMissing(codes);
+      if (gone.length){ structural = true; hg.toast(gone.length === 1 ? `Bạn không còn trong chuyến “${gone[0]}”` : `Bạn không còn trong ${gone.length} chuyến`); }
     }
-    hg.applyRemote(lid, fromRemote(raw));
+    if (switchLid){ hg.switchTo(switchLid); hg.toast('Đã vào chuyến, chúc đi vui'); }
+    else if (structural) hg.renderAll();
+    else { hg.hdr(); syncView(); }
     if (snap.metadata.hasPendingWrites) setStatus('Đang gửi thay đổi…', 'wait');
-    else if (snap.metadata.fromCache) setStatus('Đang offline, sẽ đồng bộ khi có sóng', 'wait');
+    else if (snap.metadata.fromCache) setStatus('Đang offline, sẽ gửi khi có sóng', 'wait');
     else setStatus('Đã đồng bộ · ' + hhmm(), 'ok');
-  }, e => { if (lid === curLid) setStatus(errText(e), 'bad'); });
-}
-function attachCurrent(){
-  detach();
-  const t = hg.cur();
-  if (!ENABLED){ view(); return; }
-  if (!ready){ view(); return; }
-  if (!t.code){ setStatus('Chuyến này chỉ lưu trên máy', ''); view(); return; }
-  curLid = t.lid; ref = FB.doc(db, 'trips', t.code);
-  setStatus('Đang tải chuyến đi…', 'wait'); view();
-  for (const op of hg.takeQueue(t.lid)) run(t.lid, op);
-  listen(t.lid);
+  }, e => setStatus(errText(e), 'bad'));
+  unsubI = FB.onSnapshot(FB.query(col, FB.where('invitedIds', 'array-contains', me.uid)), snap => {
+    const list = [];
+    snap.forEach(d => { const x = d.data(), i = (x.invited || {})[me.uid] || {}; list.push({id: d.id, name: x.name || 'Chuyến đi', from: i.byN || 'Ai đó'}); });
+    hg.setInvites(list); accView();
+  }, e => setStatus(errText(e), 'bad'));
 }
 
-$('syncCreate').addEventListener('click', async () => {
-  if (!ready){ hg.toast('Chưa kết nối được Firebase, thử lại khi có mạng'); return; }
-  const b = $('syncCreate'), lid = hg.cur().lid; b.disabled = true;
+/* ---------- tên đăng nhập công khai (để người khác mời) ---------- */
+let naming = null;
+function ensureName(){ if (!naming) naming = doEnsureName().finally(() => { naming = null; }); return naming; }
+async function doEnsureName(){
   try{
-    const code = genCode();
-    await FB.setDoc(FB.doc(db, 'trips', code), {...toRemote(lid), createdAt: FB.serverTimestamp(), updatedAt: FB.serverTimestamp()});
-    hg.takeQueue(lid); hg.link(lid, code); attachCurrent();
-    hg.toast('Đã bật đồng bộ, gửi mã cho người đi cùng');
-  }catch(e){ setStatus(errText(e), 'bad'); }
-  b.disabled = false;
-});
-$('syncJoinForm').addEventListener('submit', async e => {
-  e.preventDefault();
-  if (!ready){ hg.toast('Chưa kết nối được Firebase, thử lại khi có mạng'); return; }
-  const code = normCode($('syncCode').value);
-  if (code.length < 19){ hg.toast('Mã chưa đủ, mã có dạng HG-XXXX-XXXX-XXXX-XXXX'); return; }
-  const have = hg.findByCode(code);
-  if (have){ hg.switchTo(have); attachCurrent(); $('syncCode').value = ''; hg.toast('Chuyến này đã có trên máy, đã chuyển sang'); return; }
-  const btn = e.submitter || $('syncJoinForm').querySelector('button'); btn.disabled = true;
+    const ref = FB.doc(db, 'usernames', me.u), s = await FB.getDoc(ref);
+    if (!s.exists()) await FB.setDoc(ref, {uid: me.uid, name: me.n, createdAt: FB.serverTimestamp()});
+    else if (s.data().uid === me.uid && s.data().name !== me.n) await FB.updateDoc(ref, {name: me.n});
+  }catch(e){ /* thử lại ở lần đăng nhập sau */ }
+}
+
+/* ---------- đăng nhập / đăng ký ---------- */
+function gateMode(m){
+  mode = m;
+  document.querySelectorAll('#authForm [data-mode]').forEach(b => b.setAttribute('aria-pressed', b.dataset.mode === m ? 'true' : 'false'));
+  document.querySelectorAll('#authForm [data-up]').forEach(el => { el.hidden = m !== 'up'; });
+  $('auGo').textContent = m === 'up' ? 'Tạo tài khoản' : 'Đăng nhập';
+  $('auP').autocomplete = m === 'up' ? 'new-password' : 'current-password';
+  authErr('');
+}
+function authErr(t){ $('auErr').textContent = t; $('auErr').hidden = !t; }
+document.querySelectorAll('#authForm [data-mode]').forEach(b => b.addEventListener('click', () => gateMode(b.dataset.mode)));
+$('auShow').addEventListener('change', e => { ['auP', 'auP2'].forEach(id => { $(id).type = e.target.checked ? 'text' : 'password'; }); });
+$('auU').addEventListener('blur', () => { const n = normU($('auU').value); if (n) $('auU').value = n; });
+$('authForm').addEventListener('submit', async e => {
+  e.preventDefault(); authErr('');
+  if (!ready){ authErr('Đang kết nối Firebase, đợi vài giây rồi thử lại.'); return; }
+  const u = normU($('auU').value), p = $('auP').value;
+  $('auU').value = u;
+  if (!validU(u)){ authErr('Tên đăng nhập 3–20 ký tự: chữ không dấu, số, dấu chấm, gạch ngang, gạch dưới; không bắt đầu hoặc kết thúc bằng dấu.'); $('auU').focus(); return; }
+  if (p.length < 6){ authErr('Mật khẩu cần ít nhất 6 ký tự.'); $('auP').focus(); return; }
+  const btn = $('auGo'); btn.disabled = true;
   try{
-    const snap = await FB.getDoc(FB.doc(db, 'trips', code));
-    if (!snap.exists()){ setStatus('Không có chuyến đi nào với mã này', 'bad'); btn.disabled = false; return; }
-    hg.newFromRemote(code, fromRemote(snap.data()));
-    attachCurrent(); $('syncCode').value = ''; hg.toast('Đã mở chuyến đi dùng chung');
-  }catch(err){ setStatus(errText(err), 'bad'); }
+    if (mode === 'up'){
+      if (p !== $('auP2').value){ authErr('Hai lần nhập mật khẩu chưa giống nhau.'); $('auP2').focus(); btn.disabled = false; return; }
+      const n = ($('auN').value.trim() || u).slice(0, 40);
+      pendingName = n;
+      const cred = await AU.createUserWithEmailAndPassword(auth, emailOf(u), p);
+      await AU.updateProfile(cred.user, {displayName: n});
+      if (me && me.uid === cred.user.uid && me.n !== n){ me.n = n; hg.setUser(me); accView(); }
+    } else {
+      await AU.signInWithEmailAndPassword(auth, emailOf(u), p);
+    }
+    $('auP').value = ''; $('auP2').value = '';
+  }catch(err){ pendingName = null; authErr(errText(err)); }
   btn.disabled = false;
 });
-$('syncCopy').addEventListener('click', () => {
-  const t = $('syncCodeShow').textContent;
-  if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(() => hg.toast('Đã sao chép mã chuyến đi')).catch(() => hg.toast('Bấm giữ vào mã để sao chép'));
-  else hg.toast('Bấm giữ vào mã để sao chép');
+
+async function onUser(user){
+  if (!user){
+    me = null; stopListeners();
+    if (hg.db().user){ hg.clearAll(); hg.renderAll(); }
+    $('gateLoad').hidden = true; $('authForm').hidden = false; accView();
+    return;
+  }
+  me = userOf(user); if (pendingName && !user.displayName) me.n = pendingName;
+  hg.setUser(me); hg.renderAll();
+  flush(); startListeners(); ensureName(); accView();
+}
+
+/* ---------- tài khoản: đổi tên, đổi mật khẩu, đăng xuất ---------- */
+$('accBtn').addEventListener('click', () => {
+  if (!me) return;
+  hg.openSheet({title: 'Tài khoản @' + me.u, async: true, fields: [
+    {k:'n', label:'Tên hiển thị', req:true, value: me.n, max:40, hint:'Tên đăng nhập @' + me.u + ' không đổi được. Người đi cùng mời bạn bằng tên đăng nhập này.'},
+    {k:'old', label:'Mật khẩu hiện tại', type:'password', hint:'Chỉ cần điền khi muốn đổi mật khẩu'},
+    {k:'p1', label:'Mật khẩu mới', type:'password', ac:'new-password'},
+    {k:'p2', label:'Nhập lại mật khẩu mới', type:'password', ac:'new-password'}],
+   delLabel: 'Đăng xuất', armText: 'Bấm lần nữa để đăng xuất', onDelete: logout,
+   onSave: async v => {
+     const user = auth.currentUser; if (!user){ hg.sheetErr('Phiên đăng nhập đã hết, tải lại trang.'); return false; }
+     try{
+       if (v.p1 || v.old){
+         if (!v.old){ hg.sheetErr('Điền mật khẩu hiện tại để đổi mật khẩu.'); return false; }
+         if (v.p1.length < 6){ hg.sheetErr('Mật khẩu mới cần ít nhất 6 ký tự.'); return false; }
+         if (v.p1 !== v.p2){ hg.sheetErr('Hai lần nhập mật khẩu mới chưa giống nhau.'); return false; }
+         await AU.reauthenticateWithCredential(user, AU.EmailAuthProvider.credential(user.email, v.old));
+         await AU.updatePassword(user, v.p1);
+       }
+       const n = v.n.slice(0, 40);
+       if (n !== me.n){
+         await AU.updateProfile(user, {displayName: n});
+         me.n = n; hg.setUser(me);
+         FB.updateDoc(FB.doc(db, 'usernames', me.u), {name: n}).catch(() => {});
+         hg.db().order.forEach(lid => { const t = hg.trip(lid); if (t.code && t.meta && t.meta.memberIds.includes(me.uid))
+           FB.updateDoc(tripRef(t.code), new FB.FieldPath('members', me.uid), {u: me.u, n}, ...TS()).catch(() => {}); });
+         accView();
+       }
+       hg.toast(v.p1 ? 'Đã đổi mật khẩu' : 'Đã lưu');
+       return true;
+     }catch(e){
+       hg.sheetErr(e && (e.code === 'auth/wrong-password' || e.code === 'auth/invalid-credential') ? 'Mật khẩu hiện tại không đúng.' : errText(e));
+       return false;
+     }
+   }});
 });
-$('syncLeave').addEventListener('click', () => {
-  const t = hg.cur(); detach(); hg.unlink(t.lid); hg.takeQueue(t.lid);
-  setStatus('Đã ngừng đồng bộ, chuyến vẫn còn trên máy này', ''); view();
-  hg.toast('Máy khác vẫn giữ chuyến, nhập lại mã nếu muốn đồng bộ tiếp');
+async function logout(){
+  setStatus('Đang đăng xuất…', 'wait');
+  let pending = false;
+  try{ await Promise.race([FB.waitForPendingWrites(db), new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 4000))]); }
+  catch(e){ pending = true; }
+  if (pending && !forceOut){
+    forceOut = true; setTimeout(() => { forceOut = false; }, 20000);
+    hg.toast('Còn thay đổi chưa gửi được (mất mạng?). Đăng xuất lần nữa để vẫn thoát, các thay đổi đó sẽ mất.');
+    setStatus('Còn thay đổi chưa gửi', 'wait'); return;
+  }
+  stopListeners();
+  try{ await AU.signOut(auth); }catch(e){}
+  hg.clearAll();
+  try{ await FB.terminate(db); await FB.clearIndexedDbPersistence(db); }catch(e){}
+  location.reload();
+}
+
+/* ---------- mời, nhận lời, mời ra ---------- */
+$('inviteForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const t = hg.cur(); if (!t || !me || !ready) return;
+  const inp = $('inviteU'), u = normU(inp.value); inp.value = u;
+  if (!validU(u)){ hg.toast('Nhập đúng tên đăng nhập của người đi cùng'); inp.focus(); return; }
+  if (u === me.u){ hg.toast('Đây là tên đăng nhập của bạn'); return; }
+  const m = t.meta || {members:{}, invited:{}, memberIds:[], invitedIds:[]};
+  if (Object.values(m.members).some(x => x.u === u)){ hg.toast('@' + u + ' đã ở trong chuyến'); return; }
+  if (Object.values(m.invited).some(x => x.u === u)){ hg.toast('Đã mời @' + u + ', đang chờ nhận lời'); return; }
+  const btn = e.submitter || $('inviteForm').querySelector('button'); btn.disabled = true;
+  try{
+    const s = await FB.getDoc(FB.doc(db, 'usernames', u));
+    if (!s.exists()){ hg.toast('Chưa có ai dùng tên đăng nhập “' + u + '”'); btn.disabled = false; return; }
+    const {uid, name} = s.data();
+    if (m.memberIds.includes(uid)){ hg.toast('@' + u + ' đã ở trong chuyến'); btn.disabled = false; return; }
+    await FB.updateDoc(tripRef(t.code), 'invitedIds', FB.arrayUnion(uid), new FB.FieldPath('invited', uid), {u, n: name || u, by: me.uid, byN: me.n}, ...TS());
+    inp.value = ''; hg.toast('Đã mời @' + u + ', họ đăng nhập sẽ thấy lời mời');
+  }catch(err){ hg.toast(err && err.code === 'unavailable' ? 'Cần có mạng để gửi lời mời' : errText(err)); }
+  btn.disabled = false;
+});
+let kickArm = null;
+document.addEventListener('click', async e => {
+  const ok = e.target.closest('[data-inv-ok]'), no = e.target.closest('[data-inv-no]'), un = e.target.closest('[data-uninv]'), kick = e.target.closest('[data-kick]');
+  const mv = e.target.closest('#lgMove'), sk = e.target.closest('#lgSkip');
+  if (mv){ const n = hg.moveLegacy(); hg.renderAll(); hg.toast(`Đã đưa ${n} chuyến vào tài khoản`); return; }
+  if (sk){ hg.skipLegacy(); accView(); return; }
+  if (!me || !ready || !(ok || no || un || kick)) return;
+  try{
+    if (ok){ ok.disabled = true; wantSwitch = ok.dataset.invOk;
+      await FB.updateDoc(tripRef(ok.dataset.invOk), 'memberIds', FB.arrayUnion(me.uid), new FB.FieldPath('members', me.uid), {u: me.u, n: me.n},
+        'invitedIds', FB.arrayRemove(me.uid), new FB.FieldPath('invited', me.uid), FB.deleteField(), ...TS()); }
+    if (no){ no.disabled = true;
+      await FB.updateDoc(tripRef(no.dataset.invNo), 'invitedIds', FB.arrayRemove(me.uid), new FB.FieldPath('invited', me.uid), FB.deleteField(), ...TS());
+      hg.toast('Đã từ chối lời mời'); }
+    if (un){ const t = hg.cur(); un.disabled = true;
+      await FB.updateDoc(tripRef(t.code), 'invitedIds', FB.arrayRemove(un.dataset.uninv), new FB.FieldPath('invited', un.dataset.uninv), FB.deleteField(), ...TS());
+      hg.toast('Đã huỷ lời mời'); }
+    if (kick){ const uid = kick.dataset.kick, t = hg.cur();
+      if (kickArm !== uid){ kickArm = uid; kick.textContent = 'Bấm lần nữa'; setTimeout(() => { if (kickArm === uid){ kickArm = null; syncView(); } }, 5000); return; }
+      kickArm = null; kick.disabled = true;
+      await FB.updateDoc(tripRef(t.code), 'memberIds', FB.arrayRemove(uid), new FB.FieldPath('members', uid), FB.deleteField(), ...TS());
+      hg.toast('Đã mời ra khỏi chuyến'); }
+  }catch(err){ hg.toast(errText(err)); [ok, no, un, kick].forEach(b => { if (b) b.disabled = false; }); if (ok) wantSwitch = null; }
 });
 
+/* ---------- khởi động ---------- */
 (async function boot(){
-  if (!ENABLED){ setStatus('Chưa bật', ''); view(); return; }
-  setStatus('Đang kết nối Firebase…', 'wait'); view();
+  accView();
+  if (!ACC){ setStatus('Chế độ dùng thử', ''); syncView(); return; }
+  gateMode('in'); syncView();
+  setStatus('Đang kết nối Firebase…', 'wait');
   try{
-    const [app, auth, fs] = await Promise.all([import(SDK + 'firebase-app.js'), import(SDK + 'firebase-auth.js'), import(SDK + 'firebase-firestore.js')]);
-    FB = fs;
-    const fapp = app.initializeApp(FIREBASE_CONFIG);
+    const [app, au, fs] = await Promise.all([import(SDK + 'firebase-app.js'), import(SDK + 'firebase-auth.js'), import(SDK + 'firebase-firestore.js')]);
+    FB = fs; AU = au;
+    const fapp = app.initializeApp(CFG);
     try{ db = fs.initializeFirestore(fapp, {localCache: fs.persistentLocalCache({tabManager: fs.persistentMultipleTabManager()})}); }
     catch(e){ db = fs.getFirestore(fapp); }
-    const a = auth.getAuth(fapp);
-    await new Promise((res, rej) => { const off = auth.onAuthStateChanged(a, u => { if (u){ off(); res(u); } }, rej); auth.signInAnonymously(a).catch(rej); });
-    ready = true; attachCurrent();
+    auth = au.getAuth(fapp);
+    ready = true;
+    au.onAuthStateChanged(auth, user => { onUser(user).catch(e => setStatus(errText(e), 'bad')); }, e => setStatus(errText(e), 'bad'));
   }catch(e){
-    setStatus(e && e.code ? errText(e) : 'Không tải được Firebase (mất mạng hoặc trình duyệt chặn). Dữ liệu vẫn lưu trên máy.', 'bad'); view();
+    const msg = e && e.code ? errText(e) : 'Không tải được Firebase (mất mạng hoặc trình duyệt chặn).';
+    setStatus(msg + ' Dữ liệu trên máy vẫn dùng được.', 'bad');
+    $('gateLoad').innerHTML = '<span class="dot bad"></span>' + esc(msg) + ' Kiểm tra mạng rồi tải lại trang.';
   }
 })();
 </script>
